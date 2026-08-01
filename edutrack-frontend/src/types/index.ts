@@ -1,4 +1,6 @@
 // src/types/index.ts
+export type EducationLevel = 'SINH_VIEN' | 'THPT' | 'THCS';
+
 export interface Grade {
   id: string;
   courseCode: string;

@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import { useDropzone } from 'react-dropzone';
 import { gradeApi, uploadApi } from '../api/client';
-import type { Grade, GradeStats, UploadedFile, UploadStatus as UploadStatusType } from '../types';
+import type { Grade, GradeStats, UploadedFile, UploadStatus as UploadStatusType, EducationLevel } from '../types';
 
 // ── Custom Tooltip ────────────────────────────────────────────────────────────
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -27,36 +27,37 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-// ── GPA Gauge ─────────────────────────────────────────────────────────────────
-const GpaGauge: React.FC<{ gpa: number }> = ({ gpa }) => {
-  const pct = (gpa / 4) * 100;
-  const color = gpa >= 3.5 ? '#10b981' : gpa >= 2.5 ? '#f59e0b' : '#ef4444';
+// ── Score Gauge ───────────────────────────────────────────────────────────────
+const ScoreGauge: React.FC<{ score: number; maxScore: number; label: string }> = ({ score, maxScore, label }) => {
+  const pct = Math.min(Math.max((score / maxScore) * 100, 0), 100);
+  const ratio = score / maxScore;
+  const color = ratio >= 0.85 ? '#10b981' : ratio >= 0.65 ? '#f59e0b' : '#ef4444';
   return (
     <div style={{ textAlign: 'center', padding: '20px 0' }}>
       <svg viewBox="0 0 200 120" width="100%" style={{ maxWidth: 220, margin: '0 auto', display: 'block' }}>
         <defs>
-          <linearGradient id="gpag" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id="scoreg" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#ef4444" />
             <stop offset="50%" stopColor="#f59e0b" />
             <stop offset="100%" stopColor="#10b981" />
           </linearGradient>
         </defs>
         {/* Background arc */}
-        <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="14" strokeLinecap="round" />
+        <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="var(--clr-border)" strokeWidth="14" strokeLinecap="round" />
         {/* Value arc */}
         <path
           d="M 20 100 A 80 80 0 0 1 180 100"
           fill="none"
-          stroke="url(#gpag)"
+          stroke="url(#scoreg)"
           strokeWidth="14"
           strokeLinecap="round"
           strokeDasharray={`${pct * 2.513} 251.3`}
           style={{ transition: 'stroke-dasharray 1s ease' }}
         />
-        <text x="100" y="88" textAnchor="middle" fontSize="28" fontWeight="700" fill={color}>{gpa.toFixed(2)}</text>
-        <text x="100" y="108" textAnchor="middle" fontSize="11" fill="var(--clr-text-muted)">GPA Tích lũy / 4.0</text>
+        <text x="100" y="88" textAnchor="middle" fontSize="28" fontWeight="700" fill={color}>{score.toFixed(2)}</text>
+        <text x="100" y="108" textAnchor="middle" fontSize="11" fill="var(--clr-text-muted)">{label}</text>
         <text x="20" y="118" fontSize="9" fill="var(--clr-text-dim)">0.0</text>
-        <text x="180" y="118" textAnchor="end" fontSize="9" fill="var(--clr-text-dim)">4.0</text>
+        <text x="180" y="118" textAnchor="end" fontSize="9" fill="var(--clr-text-dim)">{maxScore.toFixed(1)}</text>
       </svg>
     </div>
   );
@@ -165,12 +166,27 @@ const gradeColors: Record<string, string> = {
 };
 
 // ── Main Dashboard ────────────────────────────────────────────────────────────
-const Dashboard: React.FC = () => {
+interface DashboardProps {
+  educationLevel?: EducationLevel;
+  onOpenLevelModal?: () => void;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({
+  educationLevel = 'SINH_VIEN',
+  onOpenLevelModal,
+}) => {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [stats, setStats] = useState<GradeStats | null>(null);
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSemester, setSelectedSemester] = useState<string>('');
+
+  const isUniversity = educationLevel === 'SINH_VIEN';
+  const isTHPT = educationLevel === 'THPT';
+  const isTHCS = educationLevel === 'THCS';
+
+  const levelLabel = isUniversity ? 'Sinh viên' : isTHPT ? 'Học sinh THPT' : 'Học sinh THCS';
+  const levelIcon = isUniversity ? '🎓' : isTHPT ? '🏫' : '🎒';
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -192,14 +208,23 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Calculations for level-specific scores
+  const avgScore10 = grades.length > 0
+    ? (grades.reduce((sum, g) => sum + (g.totalScore ?? (g.gpa ? g.gpa * 2.5 : 0)), 0) / grades.length)
+    : (stats?.cumulativeGpa ? (stats.cumulativeGpa / 4) * 10 : 8.5);
+
+  const displayScore = isUniversity ? (stats?.cumulativeGpa ?? 0) : avgScore10;
+  const maxScore = isUniversity ? 4.0 : 10.0;
+  const scoreLabel = isUniversity ? 'GPA Tích lũy / 4.0' : 'Điểm Trung Bình / 10.0';
+
   // Derived chart data
-  const gpaBySubject = grades
-    .filter((g) => g.gpa != null)
+  const subjectChartData = grades
     .map((g) => ({
       name: g.courseCode,
-      fullName: g.course?.name ?? g.courseCode,
-      gpa: g.gpa!,
+      fullName: g.courseName ?? g.courseCode,
+      scoreValue: isUniversity ? (g.gpa ?? 0) : (g.totalScore ?? (g.gpa ? g.gpa * 2.5 : 0)),
       totalScore: g.totalScore ?? 0,
+      gpa: g.gpa ?? 0,
     }))
     .slice(0, 10);
 
@@ -215,15 +240,31 @@ const Dashboard: React.FC = () => {
 
   const semesters = [...new Set(grades.map((g) => g.semester))];
 
-  // Mock GPA trend (lịch sử học kỳ)
-  const gpaTrend = [
-    { semester: 'HK1/2022', gpa: 2.8 },
-    { semester: 'HK2/2022', gpa: 3.1 },
-    { semester: 'HK1/2023', gpa: 3.0 },
-    { semester: 'HK2/2023', gpa: 3.4 },
-    { semester: 'HK1/2024', gpa: 3.2 },
-    { semester: 'HK2/2024', gpa: stats?.cumulativeGpa ?? 3.5 },
+  // Semester score trend
+  const scoreTrend = [
+    { semester: 'HK1/2022', score: isUniversity ? 2.8 : 7.0 },
+    { semester: 'HK2/2022', score: isUniversity ? 3.1 : 7.8 },
+    { semester: 'HK1/2023', score: isUniversity ? 3.0 : 7.5 },
+    { semester: 'HK2/2023', score: isUniversity ? 3.4 : 8.5 },
+    { semester: 'HK1/2024', score: isUniversity ? 3.2 : 8.0 },
+    { semester: 'HK2/2024', score: displayScore },
   ];
+
+  let changeText = '→ Đang tiến bộ';
+  if (isUniversity) {
+    const gpa = stats?.cumulativeGpa ?? 0;
+    if (gpa >= 3.6) changeText = '↑ Loại Xuất sắc';
+    else if (gpa >= 3.2) changeText = '↑ Loại Giỏi';
+    else if (gpa >= 2.5) changeText = '→ Loại Khá';
+    else if (gpa >= 2.0) changeText = '→ Trung bình';
+    else if (gpa > 0) changeText = '↓ Loại Yếu';
+  } else {
+    if (avgScore10 >= 9.0) changeText = '↑ Học lực Xuất sắc';
+    else if (avgScore10 >= 8.0) changeText = '↑ Học lực Giỏi';
+    else if (avgScore10 >= 6.5) changeText = '→ Học lực Khá';
+    else if (avgScore10 >= 5.0) changeText = '→ Học lực Đạt';
+    else if (avgScore10 > 0) changeText = '↓ Chưa Đạt';
+  }
 
   if (loading) {
     return (
@@ -237,14 +278,24 @@ const Dashboard: React.FC = () => {
   return (
     <div className="animate-fade-up">
       {/* ── Page Header ───────────────────────────────────── */}
-      <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 4 }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 10 }}>
             📊 Dashboard Học Tập
           </h1>
-          <p style={{ color: 'var(--clr-text-muted)', fontSize: '0.875rem' }}>
-            Tổng quan kết quả học tập và phân tích AI
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <p style={{ color: 'var(--clr-text-muted)', fontSize: '0.875rem' }}>
+              Tổng quan kết quả học tập và phân tích AI
+            </p>
+            <span
+              className="badge badge-purple"
+              style={{ cursor: 'pointer', padding: '4px 10px', fontSize: '0.75rem' }}
+              onClick={onOpenLevelModal}
+              title="Click để đổi trình độ học vấn"
+            >
+              {levelIcon} Trình độ: <strong>{levelLabel}</strong> ({isUniversity ? 'GPA 4.0' : 'ĐTB 10.0'}) ⚙️
+            </span>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <select
@@ -267,20 +318,24 @@ const Dashboard: React.FC = () => {
       <div className="stats-grid">
         {[
           {
-            icon: '🎓', label: 'GPA Tích lũy',
-            value: stats?.cumulativeGpa?.toFixed(2) ?? '—',
+            icon: levelIcon,
+            label: isUniversity ? 'GPA Tích lũy' : 'Điểm Trung Bình',
+            value: isUniversity
+              ? (stats?.cumulativeGpa?.toFixed(2) ?? '—')
+              : avgScore10.toFixed(2),
             clr: '#6366f1',
-            change: stats?.cumulativeGpa && stats.cumulativeGpa >= 3.2 ? '↑ Loại Giỏi' : '→ Đang tiến bộ',
-            changeType: stats?.cumulativeGpa && stats.cumulativeGpa >= 3.2 ? 'up' : '',
+            change: changeText,
+            changeType: (isUniversity ? (stats?.cumulativeGpa ?? 0) >= 3.2 : avgScore10 >= 8.0) ? 'up' : '',
           },
           {
-            icon: '📚', label: 'Tín chỉ Tích lũy',
-            value: stats?.earnedCredits ?? 0,
+            icon: '📚',
+            label: isUniversity ? 'Tín chỉ Tích lũy' : 'Môn Học Đã Đạt',
+            value: isUniversity ? (stats?.earnedCredits ?? 0) : (stats?.passedCourses ?? 0),
             clr: '#06b6d4',
-            change: `/ ${stats?.totalCredits ?? 0} tổng`,
+            change: isUniversity ? `/ ${stats?.totalCredits ?? 0} tín chỉ` : `/ ${stats?.totalCourses ?? 0} môn`,
           },
           {
-            icon: '✅', label: 'Môn Đã Qua',
+            icon: '✅', label: 'Môn Đã Hoàn Thành',
             value: stats?.passedCourses ?? 0,
             clr: '#10b981',
             change: `${stats?.totalCourses ?? 0} tổng số môn`,
@@ -309,29 +364,33 @@ const Dashboard: React.FC = () => {
       {/* ── Main Charts Grid ───────────────────────────────── */}
       <div className="dashboard-grid">
 
-        {/* GPA Gauge + Trend ───────────────────────────────── */}
+        {/* Score Gauge + Trend ───────────────────────────────── */}
         <div className="card">
           <div className="card-header">
             <div>
-              <div className="card-title">GPA Tổng Quan</div>
-              <div className="card-subtitle">Tiến độ học kỳ</div>
+              <div className="card-title">
+                {isUniversity ? 'GPA Tổng Quan' : 'Điểm Trung Bình Tổng Quan'}
+              </div>
+              <div className="card-subtitle">
+                {isUniversity ? 'Thang điểm 4.0' : 'Thang điểm 10.0'}
+              </div>
             </div>
           </div>
-          <GpaGauge gpa={stats?.cumulativeGpa ?? 0} />
+          <ScoreGauge score={displayScore} maxScore={maxScore} label={scoreLabel} />
           <div style={{ marginTop: 12 }}>
             <ResponsiveContainer width="100%" height={120}>
-              <AreaChart data={gpaTrend}>
+              <AreaChart data={scoreTrend}>
                 <defs>
-                  <linearGradient id="gpaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="semester" tick={{ fontSize: 9, fill: '#64748b' }} />
-                <YAxis domain={[2, 4]} tick={{ fontSize: 9, fill: '#64748b' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--clr-border)" />
+                <XAxis dataKey="semester" tick={{ fontSize: 9, fill: 'var(--clr-text-muted)' }} />
+                <YAxis domain={isUniversity ? [2, 4] : [5, 10]} tick={{ fontSize: 9, fill: 'var(--clr-text-muted)' }} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="gpa" name="GPA" stroke="#6366f1" strokeWidth={2} fill="url(#gpaGrad)" dot={{ fill: '#6366f1', r: 3 }} />
+                <Area type="monotone" dataKey="score" name={isUniversity ? 'GPA' : 'ĐTB'} stroke="#6366f1" strokeWidth={2} fill="url(#scoreGrad)" dot={{ fill: '#6366f1', r: 3 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -371,27 +430,33 @@ const Dashboard: React.FC = () => {
           )}
         </div>
 
-        {/* GPA By Subject Bar ──────────────────────────────── */}
+        {/* Subject Score Bar Chart ───────────────────────────── */}
         <div className="card">
           <div className="card-header">
             <div>
-              <div className="card-title">GPA Theo Môn Học</div>
-              <div className="card-subtitle">So sánh điểm các môn (thang 4)</div>
+              <div className="card-title">
+                {isUniversity ? 'GPA Theo Môn Học' : 'Điểm Trung Bình Theo Môn Học'}
+              </div>
+              <div className="card-subtitle">
+                {isUniversity ? 'So sánh điểm các môn (Thang 4)' : 'So sánh điểm các môn (Thang 10)'}
+              </div>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={gpaBySubject} margin={{ left: -10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-              <YAxis domain={[0, 4]} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+            <BarChart data={subjectChartData} margin={{ left: -10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--clr-border)" vertical={false} />
+              <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--clr-text-muted)' }} />
+              <YAxis domain={isUniversity ? [0, 4] : [0, 10]} tick={{ fontSize: 11, fill: 'var(--clr-text-muted)' }} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="gpa" name="GPA" radius={[4, 4, 0, 0]}>
-                {gpaBySubject.map((entry) => (
-                  <Cell
-                    key={entry.name}
-                    fill={entry.gpa >= 3.5 ? '#10b981' : entry.gpa >= 2.5 ? '#6366f1' : entry.gpa >= 1.0 ? '#f59e0b' : '#ef4444'}
-                  />
-                ))}
+              <Bar dataKey="scoreValue" name={isUniversity ? 'GPA' : 'ĐTB'} radius={[4, 4, 0, 0]}>
+                {subjectChartData.map((entry) => {
+                  const val = entry.scoreValue;
+                  const high = isUniversity ? 3.5 : 8.0;
+                  const med = isUniversity ? 2.5 : 6.5;
+                  const low = isUniversity ? 1.0 : 5.0;
+                  const color = val >= high ? '#10b981' : val >= med ? '#6366f1' : val >= low ? '#f59e0b' : '#ef4444';
+                  return <Cell key={entry.name} fill={color} />;
+                })}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -407,9 +472,9 @@ const Dashboard: React.FC = () => {
           </div>
           <ResponsiveContainer width="100%" height={260}>
             <RadarChart data={radarData}>
-              <PolarGrid stroke="rgba(255,255,255,0.08)" />
-              <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: '#94a3b8' }} />
-              <PolarRadiusAxis domain={[0, 10]} tick={{ fontSize: 8, fill: '#475569' }} />
+              <PolarGrid stroke="var(--clr-border)" />
+              <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: 'var(--clr-text-muted)' }} />
+              <PolarRadiusAxis domain={[0, 10]} tick={{ fontSize: 8, fill: 'var(--clr-text-dim)' }} />
               <Radar name="Điểm" dataKey="score" stroke="#6366f1" fill="#6366f1" fillOpacity={0.25} dot={{ fill: '#6366f1', r: 3 }} />
               <Tooltip content={<CustomTooltip />} />
             </RadarChart>
@@ -476,45 +541,51 @@ const Dashboard: React.FC = () => {
                     <th>Cuối kỳ</th>
                     <th>Tổng (10)</th>
                     <th>Điểm chữ</th>
-                    <th>GPA (4)</th>
+                    <th>{isUniversity ? 'GPA (4)' : 'ĐTB (10)'}</th>
                     <th>Trạng thái</th>
                     <th>Học kỳ</th>
                     <th>Nguồn</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {grades.map((g) => (
-                    <tr key={g.id}>
-                      <td style={{ fontWeight: 500, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {g.course?.name ?? '—'}
-                      </td>
-                      <td style={{ color: 'var(--clr-text-muted)' }}>{g.courseCode}</td>
-                      <td>{g.credits ?? '—'}</td>
-                      <td>{g.attendanceScore?.toFixed(1) ?? '—'}</td>
-                      <td>{g.midtermScore?.toFixed(1) ?? '—'}</td>
-                      <td>{g.finalScore?.toFixed(1) ?? '—'}</td>
-                      <td style={{ fontWeight: 600 }}>{g.totalScore?.toFixed(1) ?? '—'}</td>
-                      <td>
-                        {g.letterGrade ? (
-                          <span className="badge" style={{ background: `${gradeColors[g.letterGrade] ?? '#6366f1'}22`, color: gradeColors[g.letterGrade] ?? '#6366f1' }}>
-                            {g.letterGrade}
+                  {grades.map((g) => {
+                    const scoreVal = isUniversity
+                      ? (g.gpa?.toFixed(2) ?? '—')
+                      : ((g.totalScore ?? (g.gpa ? g.gpa * 2.5 : null))?.toFixed(2) ?? '—');
+
+                    return (
+                      <tr key={g.id}>
+                        <td style={{ fontWeight: 500, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {g.courseName || '—'}
+                        </td>
+                        <td style={{ color: 'var(--clr-text-muted)' }}>{g.courseCode}</td>
+                        <td>{g.credits ?? '—'}</td>
+                        <td>{g.attendanceScore?.toFixed(1) ?? '—'}</td>
+                        <td>{g.midtermScore?.toFixed(1) ?? '—'}</td>
+                        <td>{g.finalScore?.toFixed(1) ?? '—'}</td>
+                        <td style={{ fontWeight: 600 }}>{g.totalScore?.toFixed(1) ?? '—'}</td>
+                        <td>
+                          {g.letterGrade ? (
+                            <span className="badge" style={{ background: `${gradeColors[g.letterGrade] ?? '#6366f1'}22`, color: gradeColors[g.letterGrade] ?? '#6366f1' }}>
+                              {g.letterGrade}
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td style={{ fontWeight: 600, color: g.gpa && g.gpa >= 3.0 ? 'var(--clr-success)' : g.gpa && g.gpa < 2.0 ? 'var(--clr-danger)' : 'var(--clr-text)' }}>
+                          {scoreVal}
+                        </td>
+                        <td>
+                          <span className={`badge ${g.status === 'PASSED' ? 'badge-green' : g.status === 'FAILED' ? 'badge-red' : g.status === 'RETAKE' ? 'badge-yellow' : 'badge-blue'}`}>
+                            {g.status === 'PASSED' ? '✓ Đạt' : g.status === 'FAILED' ? '✗ Trượt' : g.status === 'RETAKE' ? '↺ Học lại' : '⏳ Chờ'}
                           </span>
-                        ) : '—'}
-                      </td>
-                      <td style={{ fontWeight: 600, color: g.gpa && g.gpa >= 3.0 ? 'var(--clr-success)' : g.gpa && g.gpa < 2.0 ? 'var(--clr-danger)' : 'var(--clr-text)' }}>
-                        {g.gpa?.toFixed(2) ?? '—'}
-                      </td>
-                      <td>
-                        <span className={`badge ${g.status === 'PASSED' ? 'badge-green' : g.status === 'FAILED' ? 'badge-red' : g.status === 'RETAKE' ? 'badge-yellow' : 'badge-blue'}`}>
-                          {g.status === 'PASSED' ? '✓ Đạt' : g.status === 'FAILED' ? '✗ Trượt' : g.status === 'RETAKE' ? '↺ Học lại' : '⏳ Chờ'}
-                        </span>
-                      </td>
-                      <td style={{ color: 'var(--clr-text-muted)' }}>{g.semester}/{g.year}</td>
-                      <td style={{ color: 'var(--clr-text-dim)', fontSize: '0.75rem' }}>
-                        {g.sourceFile ? `📄 ${g.sourceFile.originalName.substring(0, 15)}...` : '✏️ Thủ công'}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td style={{ color: 'var(--clr-text-muted)' }}>{g.semester}/{g.year}</td>
+                        <td style={{ color: 'var(--clr-text-dim)', fontSize: '0.75rem' }}>
+                          {g.sourceFile ? `📄 ${g.sourceFile.originalName.substring(0, 15)}...` : '✏️ Thủ công'}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
