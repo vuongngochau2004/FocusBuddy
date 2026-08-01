@@ -1,0 +1,264 @@
+// prisma/schema.prisma
+// EduTrack AI - Full Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum GradeStatus {
+  PASSED
+  FAILED
+  PENDING
+  RETAKE
+}
+
+enum MoodLevel {
+  VERY_BAD
+  BAD
+  NEUTRAL
+  GOOD
+  VERY_GOOD
+}
+
+enum StressLevel {
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
+}
+
+enum AgentType {
+  SUPERVISOR
+  ACADEMIC
+  PSYCHOLOGY
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum UploadStatus {
+  PENDING
+  PROCESSING
+  DONE
+  ERROR
+}
+
+// ─────────────────────────────────────────────
+// USER (Student)
+// ─────────────────────────────────────────────
+
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  name         String
+  avatarUrl    String?
+  studentId    String? @unique
+  passwordHash String
+  refreshToken String? // Hashed refresh token
+
+  // Relations
+  courses        CourseEnrollment[]
+  grades         Grade[]
+  studyLogs      StudyLog[]
+  psychologyLogs PsychologyLog[]
+  chatSessions   ChatSession[]
+  uploadedFiles  UploadedFile[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// COURSE
+// ─────────────────────────────────────────────
+
+model Course {
+  id          String  @id @default(cuid())
+  code        String  @unique
+  name        String
+  credits     Int     @default(3)
+  description String?
+
+  enrollments CourseEnrollment[]
+  grades      Grade[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("courses")
+}
+
+model CourseEnrollment {
+  id       String @id @default(cuid())
+  userId   String
+  courseId String
+  semester String // "2024-1"
+  year     Int
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId, semester])
+  @@map("course_enrollments")
+}
+
+// ─────────────────────────────────────────────
+// GRADE
+// ─────────────────────────────────────────────
+
+model Grade {
+  id       String @id @default(cuid())
+  userId   String
+  courseId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  // Điểm thành phần
+  attendanceScore Float?
+  midtermScore    Float?
+  finalScore      Float?
+  totalScore      Float? // Điểm tổng kết (thang 10)
+  letterGrade     String? // A, B+, C, ...
+  gpa             Float? // Điểm tổng kết (thang 4)
+
+  status   GradeStatus @default(PENDING)
+  semester String
+  year     Int
+
+  // Nguồn từ file upload
+  sourceFileId String?
+  sourceFile   UploadedFile? @relation(fields: [sourceFileId], references: [id])
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId, semester, year])
+  @@map("grades")
+}
+
+// ─────────────────────────────────────────────
+// STUDY LOG
+// ─────────────────────────────────────────────
+
+model StudyLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date          DateTime @default(now())
+  durationHours Float
+  subject       String?
+  topics        String[]
+  efficiency    Int? // 1-10
+  notes         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("study_logs")
+}
+
+// ─────────────────────────────────────────────
+// PSYCHOLOGY LOG
+// ─────────────────────────────────────────────
+
+model PsychologyLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date         DateTime    @default(now())
+  mood         MoodLevel
+  stressLevel  StressLevel
+  sleepHours   Float?
+  energyLevel  Int? // 1-10
+  anxietyScore Float? // 0-100
+  notes        String?
+  factors      String[] // ["exam_pressure", "workload", ...]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("psychology_logs")
+}
+
+// ─────────────────────────────────────────────
+// CHAT SESSION & HISTORY
+// ─────────────────────────────────────────────
+
+model ChatSession {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title    String?
+  isActive Boolean @default(true)
+
+  messages ChatHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("chat_sessions")
+}
+
+model ChatHistory {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  role      MessageRole
+  content   String      @db.Text
+  agentType AgentType?
+
+  intentScore Json? // { academic: 0.8, psychology: 0.2 }
+  tokensUsed  Int?
+  latencyMs   Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([sessionId, createdAt])
+  @@map("chat_histories")
+}
+
+// ─────────────────────────────────────────────
+// UPLOADED FILE (PDF / Excel / Image)
+// ─────────────────────────────────────────────
+
+model UploadedFile {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  originalName  String
+  mimeType      String // application/pdf | image/jpeg | ...
+  sizeBytes     Int
+  storagePath   String    @db.Text // local path hoặc S3 key
+  status        UploadStatus @default(PENDING)
+  extractedData Json?     // Raw JSON extracted by AI
+  errorMessage  String?
+
+  grades Grade[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("uploaded_files")
+}
