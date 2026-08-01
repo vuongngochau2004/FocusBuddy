@@ -1,0 +1,70 @@
+// src/api/client.ts
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: '/api',
+  headers: { 'Content-Type': 'application/json' },
+});
+
+// Inject token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('access_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// Refresh on 401
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('access_token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(err);
+  },
+);
+
+export default api;
+
+// ── Grade API ─────────────────────────────────────────────────────────────────
+export const gradeApi = {
+  getAll: (semester?: string) =>
+    api.get('/grades', { params: semester ? { semester } : {} }),
+  getStats: () => api.get('/grades/stats'),
+  create: (data: unknown) => api.post('/grades', data),
+  update: (id: string, data: unknown) => api.patch(`/grades/${id}`, data),
+  remove: (id: string) => api.delete(`/grades/${id}`),
+};
+
+// ── Upload API ────────────────────────────────────────────────────────────────
+export const uploadApi = {
+  uploadGradeSheet: (file: File, onProgress?: (pct: number) => void) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post<{ uploadId: string; status: string; message: string }>(
+      '/upload/grade-sheet',
+      form,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (e) => {
+          if (onProgress && e.total) {
+            onProgress(Math.round((e.loaded * 100) / e.total));
+          }
+        },
+      },
+    );
+  },
+  getStatus: (id: string) => api.get(`/upload/${id}/status`),
+  getMyFiles: () => api.get('/upload/my-files'),
+  remove: (id: string) => api.delete(`/upload/${id}`),
+};
+
+// ── Chat API ──────────────────────────────────────────────────────────────────
+export const chatApi = {
+  send: (data: { sessionId?: string; message: string }) =>
+    api.post('/chat', data),
+  getSessions: () => api.get('/chat/sessions'),
+  getHistory: (sessionId: string) =>
+    api.get(`/chat/sessions/${sessionId}/history`),
+};
