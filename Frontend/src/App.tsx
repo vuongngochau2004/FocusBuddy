@@ -4,26 +4,63 @@ import Dashboard from './components/Dashboard';
 import ChatBot from './components/ChatBot';
 import ThemeToggle, { Theme } from './components/ThemeToggle';
 import EducationLevelModal from './components/EducationLevelModal';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import type { EducationLevel } from './types';
 
 type Page = 'dashboard' | 'chat' | 'psychology';
+type AuthView = 'login' | 'register' | 'verify';
 
+// ── Sidebar ──────────────────────────────────────────────
 const Sidebar: React.FC<{
   page: Page;
   setPage: (p: Page) => void;
   educationLevel: EducationLevel;
   onOpenLevelModal: () => void;
-}> = ({ page, setPage, educationLevel, onOpenLevelModal }) => {
+  onLogout: () => void;
+  userName: string;
+}> = ({ page, setPage, educationLevel, onOpenLevelModal, onLogout, userName }) => {
   const navItems = [
     { id: 'dashboard' as Page, icon: '📊', label: 'Dashboard' },
     { id: 'chat'      as Page, icon: '🤖', label: 'AI Chatbot' },
     { id: 'psychology' as Page, icon: '🧠', label: 'Tâm lý học' },
   ];
 
-  const levelBadge = educationLevel === 'SINH_VIEN' ? 'Sinh viên' : educationLevel === 'THPT' ? 'THPT' : 'THCS';
+  const levelBadge =
+    educationLevel === 'SINH_VIEN' ? 'Sinh viên'
+    : educationLevel === 'THPT' ? 'THPT' : 'THCS';
 
   return (
     <nav className="sidebar">
+      {/* User info */}
+      <div style={{
+        padding: '12px 14px',
+        marginBottom: '8px',
+        background: 'var(--clr-surface2)',
+        borderRadius: 'var(--radius)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+      }}>
+        <div style={{
+          width: 36, height: 36,
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg,#4f46e5,#7c3aed)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '1rem', fontWeight: 700, color: 'white', flexShrink: 0,
+        }}>
+          {userName.charAt(0).toUpperCase()}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--clr-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {userName}
+          </div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--clr-text-dim)' }}>{levelBadge}</div>
+        </div>
+      </div>
+
       <div className="sidebar-section">Menu chính</div>
       {navItems.map((item) => (
         <button
@@ -40,21 +77,38 @@ const Sidebar: React.FC<{
       <div
         className="sidebar-item"
         onClick={onOpenLevelModal}
-        title="Cập nhật trình độ học vấn (GPA hoặc Điểm trung bình)"
+        title="Cập nhật trình độ học vấn"
       >
         🎓 Trình độ ({levelBadge})
       </div>
       <div className="sidebar-item" onClick={onOpenLevelModal}>
         ⚙️ Cài đặt
       </div>
-      <div className="sidebar-item" onClick={() => { localStorage.removeItem('access_token'); window.location.reload(); }}>
+      <div
+        className="sidebar-item"
+        id="sidebar-logout-btn"
+        onClick={onLogout}
+        style={{ color: 'var(--clr-danger)' }}
+      >
         🚪 Đăng xuất
       </div>
     </nav>
   );
 };
 
-const App: React.FC = () => {
+// ── Loading Screen ────────────────────────────────────────
+const LoadingScreen: React.FC = () => (
+  <div className="auth-loading-screen">
+    <div className="auth-loading-logo">🎓</div>
+    <div className="auth-loading-text">Đang tải EduTrack AI...</div>
+  </div>
+);
+
+// ── Main App Logic (inside AuthProvider) ─────────────────
+const AppContent: React.FC = () => {
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const [authView, setAuthView] = useState<AuthView>('login');
+  const [pendingEmail, setPendingEmail] = useState('');
   const [page, setPage] = useState<Page>('dashboard');
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem('theme');
@@ -80,10 +134,42 @@ const App: React.FC = () => {
     localStorage.setItem('education_level', level);
   };
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+
+  const handleLogout = async () => {
+    await logout();
+    setAuthView('login');
   };
 
+  // ── Loading ───────────────────────────────────────────
+  if (isLoading) return <LoadingScreen />;
+
+  // ── Not Authenticated → Show Auth pages ──────────────
+  if (!isAuthenticated) {
+    if (authView === 'register') {
+      return (
+        <RegisterPage
+          onGoLogin={() => setAuthView('login')}
+          onRegistered={(email) => {
+            setPendingEmail(email);
+            setAuthView('verify');
+          }}
+        />
+      );
+    }
+    if (authView === 'verify') {
+      return (
+        <VerifyEmailPage
+          email={pendingEmail}
+          onVerified={() => setAuthView('login')}
+          onGoLogin={() => setAuthView('login')}
+        />
+      );
+    }
+    return <LoginPage onGoRegister={() => setAuthView('register')} />;
+  }
+
+  // ── Authenticated → Show Main App ────────────────────
   return (
     <div className="app-shell">
       {/* Topbar */}
@@ -104,6 +190,8 @@ const App: React.FC = () => {
         setPage={setPage}
         educationLevel={educationLevel}
         onOpenLevelModal={() => setIsLevelModalOpen(true)}
+        onLogout={handleLogout}
+        userName={user?.name ?? 'Người dùng'}
       />
 
       {/* Main */}
@@ -136,5 +224,13 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+// ── Root App ──────────────────────────────────────────────
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+};
 
+export default App;

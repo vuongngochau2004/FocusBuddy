@@ -1,6 +1,34 @@
 // src/types/index.ts
 export type EducationLevel = 'SINH_VIEN' | 'THPT' | 'THCS';
 
+// ── Auth Types ──────────────────────────────────────────────────────────────
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  avatarUrl?: string | null;
+}
+
+export interface LoginDto {
+  email: string;
+  password: string;
+}
+
+export interface RegisterDto {
+  email: string;
+  fullName: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  message: string;
+  accessToken: string;
+  refreshToken: string;
+  user: AuthUser;
+}
+
+
+
 export interface Grade {
   id: string;
   courseCode: string;
