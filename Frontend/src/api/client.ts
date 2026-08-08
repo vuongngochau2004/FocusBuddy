@@ -13,19 +13,38 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Refresh on 401
+// Redirect to login on 401
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('access_token');
-      window.location.href = '/login';
+      const isAuthEndpoint = err.config?.url?.includes('/auth/');
+      if (!isAuthEndpoint) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.location.reload();
+      }
     }
     return Promise.reject(err);
   },
 );
 
 export default api;
+
+// ── Auth API ──────────────────────────────────────────────────────────────────
+export const authApi = {
+  register: (data: { email: string; fullName: string; password: string }) =>
+    api.post('/auth/register', data),
+  login: (data: { email: string; password: string }) =>
+    api.post('/auth/login', data),
+  verifyEmail: (data: { email: string; code: string }) =>
+    api.post('/auth/verify-email', data),
+  resendOtp: (email: string) =>
+    api.post('/auth/resend-otp', { email }),
+  logout: () => api.post('/auth/logout'),
+  me: () => api.get('/auth/me'),
+};
+
 
 // ── Grade API ─────────────────────────────────────────────────────────────────
 export const gradeApi = {

@@ -68,6 +68,11 @@ model User {
   passwordHash String
   refreshToken String? // Hashed refresh token
 
+  // Email verification
+  isVerified               Boolean   @default(false)
+  verificationCode         String?
+  verificationCodeExpires  DateTime?
+
   // Relations
   courses        CourseEnrollment[]
   grades         Grade[]
