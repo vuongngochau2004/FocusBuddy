@@ -1,9 +1,9 @@
-# EduTrack AI – Hệ Thống Theo Dõi Học Tập Tích Hợp Chatbot AI
+# FocusBuddy (EduTrack AI) – Hệ Thống Theo Dõi Học Tập Tích Hợp Chatbot AI
 
 ## Cấu trúc dự án
 
 ```
-edutrack-backend/                 ← NestJS Backend
+Backend/                          ← NestJS Backend
 ├── prisma/
 │   └── schema.prisma             ← Database schema (PostgreSQL)
 ├── src/
@@ -32,7 +32,7 @@ edutrack-backend/                 ← NestJS Backend
 │               ├── academic.agent.ts       ← Academic Analysis
 │               └── psychology.agent.ts     ← Psychology Support
 
-edutrack-frontend/                ← React + Vite Frontend
+Frontend/                         ← React + Vite Frontend
 ├── index.html
 ├── vite.config.ts
 ├── src/
@@ -44,6 +44,8 @@ edutrack-frontend/                ← React + Vite Frontend
 │   └── components/
 │       ├── Dashboard.tsx         ← Charts + Upload + Grade Table ⭐
 │       └── ChatBot.tsx           ← Multi-agent Chat UI ⭐
+
+AI/                               ← AI Services & Models
 ```
 
 ## Luồng dữ liệu Upload Bảng Điểm
@@ -105,7 +107,7 @@ PORT=3000
 
 ### Backend
 ```bash
-cd edutrack-backend
+cd Backend
 npm install
 npx prisma migrate dev --name init
 npm run start:dev
@@ -115,7 +117,7 @@ npm run start:dev
 
 ### Frontend
 ```bash
-cd edutrack-frontend
+cd Frontend
 npm install
 npm run dev
 # App: http://localhost:5173

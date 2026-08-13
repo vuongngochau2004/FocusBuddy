@@ -1,3 +1,4 @@
+
 __pycache__/
 *.pyc
 .venv/
@@ -11,4 +12,3 @@ venv/
 *.pth
 *.onnx
 
-GARBAGE CLASSIFICATION
