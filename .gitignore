@@ -1,20 +1,14 @@
-# Dependencies
-node_modules/
 
-# Production / Build
-dist/
-build/
-
-# Environment files
+__pycache__/
+*.pyc
+.venv/
+venv/
 .env
-.env.local
 
-# IDE / System files
-.DS_Store
 .vscode/
 .idea/
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+*.pt
+*.pth
+*.onnx
+
