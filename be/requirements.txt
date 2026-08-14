@@ -6,3 +6,4 @@ alembic
 pydantic-settings
 Faker
 passlib[bcrypt]
+email-validator

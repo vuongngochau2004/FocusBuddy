@@ -20,7 +20,9 @@ SQLAlchemy Model(app/models/)
 PostgreSQL
 ```
 
-Riêng đối với Module xử lý file (File Processing), hệ thống có thể đi qua một tầng Processor riêng để chuyên môn hóa việc trích xuất (Extraction):
+Riêng đối với Module xử lý file (File Processing) và Module AI, luồng dữ liệu được mở rộng như sau:
+
+**File Processing:**
 ```text
 API Router
     ↓
@@ -31,6 +33,23 @@ File Processor (TXT, CSV...)
 Extractor
     ↓
 Repository
+    ↓
+PostgreSQL
+```
+
+**AI & Chatbot:**
+```text
+API Router
+    ↓
+AI Service / Chat Service
+    ↓
+AI Context Builder
+    ↓
+Agent Orchestrator (chọn đúng Agent)
+    ↓
+AI Provider (OpenAI, Mock, Gemini, ...)
+    ↓
+Repository (lưu Report/Recommendation)
     ↓
 PostgreSQL
 ```
