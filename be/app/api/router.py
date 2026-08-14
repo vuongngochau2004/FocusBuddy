@@ -13,6 +13,7 @@ from app.api.v1.study_sessions import router as study_session_router
 from app.api.v1.study_tasks import router as study_task_router
 from app.api.v1.emotion_logs import router as emotion_log_router
 from app.api.v1.mental_assessments import router as mental_assessment_router
+from app.api.v1.files import router as file_router
 
 api_router.include_router(user_router, prefix="/v1/users", tags=["Users"])
 api_router.include_router(university_router, prefix="/v1/universities", tags=["Universities"])
@@ -25,6 +26,7 @@ api_router.include_router(study_session_router, prefix="/v1/study-sessions", tag
 api_router.include_router(study_task_router, prefix="/v1/study-tasks", tags=["Study Tasks"])
 api_router.include_router(emotion_log_router, prefix="/v1/emotions", tags=["Emotions"])
 api_router.include_router(mental_assessment_router, prefix="/v1/assessments", tags=["Assessments"])
+api_router.include_router(file_router, prefix="/v1/files", tags=["Files"])
 
 @api_router.get("/v1/ping", tags=["Health Check"])
 async def ping():

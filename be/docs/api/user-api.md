@@ -1,12 +1,12 @@
-# User Management API
+# API Quản lý Người dùng (User Management)
 
-This module handles user registration, authentication, and user profile management.
+Module này xử lý việc đăng ký, xác thực và quản lý hồ sơ người dùng.
 
-## 1. User Registration & Auth
+## 1. Đăng ký & Xác thực (Registration & Auth)
 
 ### `POST /api/v1/users`
-**Purpose**: Register a new user.
-**Request**:
+**Mục đích**: Đăng ký người dùng mới.
+**Dữ liệu yêu cầu (Request)**:
 ```json
 {
   "email": "student@example.com",
@@ -15,7 +15,7 @@ This module handles user registration, authentication, and user profile manageme
   "full_name": "Student Name"
 }
 ```
-**Response (201 Created)**:
+**Dữ liệu phản hồi (Response) (201 Created)**:
 ```json
 {
   "id": "uuid",
@@ -28,11 +28,11 @@ This module handles user registration, authentication, and user profile manageme
 ```
 
 ### `POST /api/v1/users/login`
-**Purpose**: Authenticate a user and receive an access token (Standard OAuth2 Password Flow).
-**Request** (Form Data):
-- `username`: The user's email or username.
-- `password`: The user's password.
-**Response (200 OK)**:
+**Mục đích**: Xác thực người dùng và nhận access token (Chuẩn OAuth2 Password Flow).
+**Dữ liệu yêu cầu (Request)** (Form Data):
+- `username`: Email hoặc tên người dùng.
+- `password`: Mật khẩu.
+**Dữ liệu phản hồi (Response) (200 OK)**:
 ```json
 {
   "access_token": "jwt_token_here",
@@ -40,17 +40,17 @@ This module handles user registration, authentication, and user profile manageme
 }
 ```
 
-## 2. User Data
+## 2. Dữ liệu Người dùng (User Data)
 
 ### `GET /api/v1/users/me`
-**Purpose**: Retrieve the current authenticated user's details.
+**Mục đích**: Lấy thông tin chi tiết của người dùng đang đăng nhập.
 
 ### `PUT /api/v1/users/me`
-**Purpose**: Update the current user's profile.
+**Mục đích**: Cập nhật hồ sơ của người dùng hiện tại.
 
 ### `GET /api/v1/users/{id}`
-**Purpose**: Get details of a specific user (admin only).
+**Mục đích**: Lấy thông tin chi tiết của một người dùng cụ thể (chỉ dành cho admin).
 
-## Error Codes
-- **401 Unauthorized**: Invalid credentials or missing token.
-- **409 Conflict**: Email or username already registered.
+## Xử lý lỗi (Error Handling)
+- **401 Unauthorized**: Sai thông tin đăng nhập hoặc thiếu token.
+- **409 Conflict**: Email hoặc username đã tồn tại.
