@@ -1,18 +1,18 @@
-# Mental & Psychology Management API
+# API Quản lý Tâm lý & Sức khỏe (Mental & Psychology)
 
-This module allows users to log and track their emotional and mental well-being over time. This includes daily emotion logs and periodic mental assessments.
+Module này cho phép người dùng ghi nhận và theo dõi trạng thái cảm xúc cũng như sức khỏe tâm lý theo thời gian, bao gồm nhật ký cảm xúc hàng ngày và các bài đánh giá tâm lý định kỳ.
 
-**Important Note on Authentication:**
-Since Authentication is partially implemented, the `X-User-Id` header is used in these APIs to identify the acting user. This ensures that users can only interact with their own mental data (Ownership verification).
+**Lưu ý quan trọng về xác thực:**
+Tương tự các module khác, header `X-User-Id` được sử dụng để định danh người dùng. Điều này đảm bảo quyền sở hữu (Ownership) dữ liệu cá nhân chặt chẽ.
 
-## 1. Emotion Logs API
+## 1. API Nhật ký Cảm xúc (Emotion Logs)
 
-Tracks daily emotional states, stress, motivation, and energy levels.
+Theo dõi trạng thái cảm xúc, mức độ căng thẳng, động lực và năng lượng hàng ngày.
 
 ### `POST /api/v1/emotions`
-**Purpose**: Record a new emotion log.
+**Mục đích**: Ghi nhận một nhật ký cảm xúc mới.
 **Headers**: `X-User-Id: <user_uuid>`
-**Request Body**:
+**Dữ liệu yêu cầu (Request)**:
 ```json
 {
   "emotion": "HAPPY",
@@ -23,7 +23,7 @@ Tracks daily emotional states, stress, motivation, and energy levels.
   "recorded_at": "2026-08-14T10:00:00Z"
 }
 ```
-**Response (201 Created)**:
+**Dữ liệu phản hồi (Response) (201 Created)**:
 ```json
 {
   "id": "uuid",
@@ -35,30 +35,30 @@ Tracks daily emotional states, stress, motivation, and energy levels.
 ```
 
 ### `GET /api/v1/emotions`
-**Purpose**: Retrieve emotion history for the user, ordered by `recorded_at` descending.
+**Mục đích**: Lấy lịch sử cảm xúc của người dùng, sắp xếp theo `recorded_at` giảm dần.
 **Headers**: `X-User-Id: <user_uuid>`
-**Query Parameters**: `skip` (default 0), `limit` (default 100).
+**Parameters**: `skip` (mặc định 0), `limit` (mặc định 100).
 
 ### `GET /api/v1/emotions/{id}`
-**Purpose**: Get a specific emotion log. Returns 403 if the log does not belong to the user.
+**Mục đích**: Lấy chi tiết một nhật ký cảm xúc. Trả về 403 nếu không thuộc về người dùng.
 **Headers**: `X-User-Id: <user_uuid>`
 
 ### `PUT /api/v1/emotions/{id}`
-**Purpose**: Update an existing emotion log.
+**Mục đích**: Cập nhật một nhật ký cảm xúc đã có.
 
 ### `DELETE /api/v1/emotions/{id}`
-**Purpose**: Delete an emotion log. Returns 204 No Content.
+**Mục đích**: Xóa một nhật ký cảm xúc. Trả về 204 No Content.
 
 ---
 
-## 2. Mental Assessments API
+## 2. API Đánh giá Tâm lý (Mental Assessments)
 
-Tracks periodic mental health checks or assessments (e.g., Daily Check, AI Analysis).
+Theo dõi các bài kiểm tra sức khỏe tâm lý định kỳ (ví dụ: Daily Check, AI Analysis).
 
 ### `POST /api/v1/assessments`
-**Purpose**: Submit a new mental assessment.
+**Mục đích**: Nộp một bài đánh giá tâm lý mới.
 **Headers**: `X-User-Id: <user_uuid>`
-**Request Body**:
+**Dữ liệu yêu cầu (Request)**:
 ```json
 {
   "assessment_type": "DAILY_CHECK",
@@ -72,21 +72,21 @@ Tracks periodic mental health checks or assessments (e.g., Daily Check, AI Analy
 ```
 
 ### `GET /api/v1/assessments`
-**Purpose**: List assessment history for the user, ordered by `created_at` descending.
-**Query Parameters**: `skip`, `limit`.
+**Mục đích**: Lấy lịch sử bài đánh giá của người dùng, sắp xếp theo `created_at` giảm dần.
+**Parameters**: `skip`, `limit`.
 
 ### `GET /api/v1/assessments/{id}`
-**Purpose**: Retrieve a specific assessment.
+**Mục đích**: Lấy chi tiết một bài đánh giá.
 
 ### `PUT /api/v1/assessments/{id}`
-**Purpose**: Update an assessment.
+**Mục đích**: Cập nhật bài đánh giá.
 
 ### `DELETE /api/v1/assessments/{id}`
-**Purpose**: Delete an assessment.
+**Mục đích**: Xóa bài đánh giá.
 
-## Error Codes
+## Xử lý lỗi (Error Codes)
 
-- **400 Bad Request**: Invalid input data.
-- **403 Forbidden**: Trying to access/modify an emotion log or assessment that belongs to another user.
-- **404 Not Found**: The resource does not exist.
-- **422 Unprocessable Entity**: Validation error on payload fields (e.g. invalid Enum value for EmotionType, or level out of bounds).
+- **400 Bad Request**: Dữ liệu đầu vào không hợp lệ.
+- **403 Forbidden**: Cố gắng truy cập/chỉnh sửa nhật ký hoặc bài đánh giá của người dùng khác.
+- **404 Not Found**: Tài nguyên không tồn tại.
+- **422 Unprocessable Entity**: Lỗi Pydantic (ví dụ: giá trị Enum không hợp lệ hoặc vượt ngưỡng cho phép).

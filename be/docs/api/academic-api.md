@@ -1,13 +1,13 @@
-# Academic Management API
+# API Quản lý Học thuật (Academic Management)
 
-This module provides Reference/Master data for the educational background of users.
+Module này cung cấp dữ liệu tham chiếu (Master data) về nền tảng học vấn của người dùng.
 
-## 1. Universities API
+## 1. API Trường Đại học (Universities)
 
 ### `GET /api/v1/universities`
-**Purpose**: List all universities.
-**Query Parameters**: `skip`, `limit`.
-**Response (200 OK)**:
+**Mục đích**: Lấy danh sách tất cả trường đại học.
+**Parameters**: `skip`, `limit`.
+**Dữ liệu phản hồi (Response) (200 OK)**:
 ```json
 {
   "items": [
@@ -23,19 +23,19 @@ This module provides Reference/Master data for the educational background of use
 ```
 
 ### `POST /api/v1/universities`
-**Purpose**: Create a new university.
+**Mục đích**: Tạo mới một trường đại học.
 
 ### `GET /api/v1/universities/{id}`
-**Purpose**: Retrieve specific university details.
+**Mục đích**: Lấy chi tiết một trường đại học.
 
-## 2. Majors API
+## 2. API Chuyên ngành (Majors)
 
 ### `GET /api/v1/majors`
-**Purpose**: List all majors.
-**Query Parameters**: 
+**Mục đích**: Lấy danh sách chuyên ngành.
+**Parameters**: 
 - `skip`, `limit`
-- `university_id`: Filter majors by university.
-**Response (200 OK)**:
+- `university_id`: Lọc chuyên ngành theo trường đại học.
+**Dữ liệu phản hồi (Response) (200 OK)**:
 ```json
 {
   "items": [
@@ -52,38 +52,38 @@ This module provides Reference/Master data for the educational background of use
 ```
 
 ### `POST /api/v1/majors`
-**Purpose**: Create a major (requires valid `university_id`).
+**Mục đích**: Tạo chuyên ngành (yêu cầu `university_id` hợp lệ).
 
 ### `GET /api/v1/majors/{id}`
-**Purpose**: Retrieve specific major details.
+**Mục đích**: Lấy chi tiết chuyên ngành.
 
-## 3. Curriculums API
+## 3. API Chương trình học (Curriculums)
 
 ### `GET /api/v1/curriculums`
-**Purpose**: List curriculums.
-**Query Parameters**: `major_id`.
+**Mục đích**: Lấy danh sách chương trình học.
+**Parameters**: `major_id`.
 
 ### `POST /api/v1/curriculums`
-**Purpose**: Create a curriculum (requires valid `major_id`).
+**Mục đích**: Tạo chương trình học (yêu cầu `major_id` hợp lệ).
 
-## 4. Courses API
+## 4. API Môn học (Courses)
 
 ### `GET /api/v1/courses`
-**Purpose**: List courses.
-**Query Parameters**: `major_id`.
+**Mục đích**: Lấy danh sách môn học.
+**Parameters**: `major_id`.
 
 ### `POST /api/v1/courses`
-**Purpose**: Create a course (requires valid `major_id`).
+**Mục đích**: Tạo môn học (yêu cầu `major_id` hợp lệ).
 
-## 5. Academic Terms API
+## 5. API Học kỳ (Academic Terms)
 
 ### `GET /api/v1/academic-terms`
-**Purpose**: List academic terms (e.g. Semesters).
-**Query Parameters**: `skip`, `limit`.
+**Mục đích**: Lấy danh sách học kỳ (Academic terms).
+**Parameters**: `skip`, `limit`.
 
 ### `POST /api/v1/academic-terms`
-**Purpose**: Create an academic term.
+**Mục đích**: Tạo một học kỳ mới.
 
-## Error Codes
-- **400 Bad Request**: Invalid input data or dependent entity creation failure.
-- **404 Not Found**: Entity ID not found (e.g. creating a Major with non-existent University).
+## Xử lý lỗi (Error Handling)
+- **400 Bad Request**: Dữ liệu đầu vào không hợp lệ hoặc lỗi tạo thực thể phụ thuộc.
+- **404 Not Found**: Không tìm thấy ID thực thể (VD: tạo Chuyên ngành với Trường đại học không tồn tại).

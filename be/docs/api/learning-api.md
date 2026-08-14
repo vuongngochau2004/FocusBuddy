@@ -1,18 +1,18 @@
-# Learning Activity Management API
+# API Quản lý Hoạt động Học tập (Learning Activity)
 
-This module manages the learning processes of users, such as defining goals, tracking study sessions, and organizing tasks.
+Module này quản lý quá trình học tập của người dùng, chẳng hạn như thiết lập mục tiêu, theo dõi phiên học và sắp xếp công việc.
 
-**Important Note on Authentication:**
-Since Authentication is partially implemented, the `X-User-Id` header is used in these APIs to identify the acting user. This ensures that users can only interact with their own learning data (Ownership verification).
+**Lưu ý quan trọng về xác thực:**
+Do tính năng xác thực (Authentication) chỉ mới được triển khai một phần, header `X-User-Id` được sử dụng trong các API này để định danh người dùng. Điều này đảm bảo rằng người dùng chỉ có thể tương tác với dữ liệu học tập của chính họ (Xác minh quyền sở hữu - Ownership).
 
-## 1. Learning Goals API
+## 1. API Mục tiêu Học tập (Learning Goals)
 
-Learning goals represent long-term achievements a user wants to reach (e.g., "Master Backend in 100 hours").
+Mục tiêu học tập đại diện cho những thành tựu dài hạn mà người dùng muốn đạt được.
 
 ### `POST /api/v1/learning-goals`
-**Purpose**: Create a new learning goal.
+**Mục đích**: Tạo mục tiêu học tập mới.
 **Headers**: `X-User-Id: <user_uuid>`
-**Request Body**:
+**Dữ liệu yêu cầu (Request)**:
 ```json
 {
   "title": "Master Backend",
@@ -23,7 +23,7 @@ Learning goals represent long-term achievements a user wants to reach (e.g., "Ma
   "status": "ACTIVE"
 }
 ```
-**Response (201 Created)**:
+**Dữ liệu phản hồi (Response) (201 Created)**:
 ```json
 {
   "id": "uuid",
@@ -39,10 +39,10 @@ Learning goals represent long-term achievements a user wants to reach (e.g., "Ma
 ```
 
 ### `GET /api/v1/learning-goals`
-**Purpose**: Retrieve all learning goals for the authenticated user.
+**Mục đích**: Lấy tất cả mục tiêu học tập của người dùng hiện tại.
 **Headers**: `X-User-Id: <user_uuid>`
-**Query Parameters**: `skip` (default 0), `limit` (default 100).
-**Response (200 OK)**:
+**Parameters**: `skip` (mặc định 0), `limit` (mặc định 100).
+**Dữ liệu phản hồi (Response) (200 OK)**:
 ```json
 {
   "items": [ ... ],
@@ -51,25 +51,25 @@ Learning goals represent long-term achievements a user wants to reach (e.g., "Ma
 ```
 
 ### `GET /api/v1/learning-goals/{id}`
-**Purpose**: Get a specific learning goal. Returns 403 if the goal does not belong to the user.
+**Mục đích**: Lấy một mục tiêu học tập cụ thể. Trả về 403 nếu mục tiêu không thuộc về người dùng.
 **Headers**: `X-User-Id: <user_uuid>`
 
 ### `PUT /api/v1/learning-goals/{id}`
-**Purpose**: Update an existing learning goal.
+**Mục đích**: Cập nhật mục tiêu học tập.
 
 ### `DELETE /api/v1/learning-goals/{id}`
-**Purpose**: Delete a learning goal. Returns 204 No Content.
+**Mục đích**: Xóa mục tiêu học tập. Trả về 204 No Content.
 
 ---
 
-## 2. Study Sessions API
+## 2. API Phiên học (Study Sessions)
 
-Study Sessions track the actual time spent learning.
+Phiên học theo dõi thời gian thực tế dành cho việc học.
 
 ### `POST /api/v1/study-sessions`
-**Purpose**: Record a new study session.
+**Mục đích**: Ghi lại một phiên học mới.
 **Headers**: `X-User-Id: <user_uuid>`
-**Request Body**:
+**Dữ liệu yêu cầu (Request)**:
 ```json
 {
   "start_time": "2026-08-14T10:00:00Z",
@@ -80,7 +80,7 @@ Study Sessions track the actual time spent learning.
   "note": "Great focus today."
 }
 ```
-**Response (201 Created)**:
+**Dữ liệu phản hồi (Response) (201 Created)**:
 ```json
 {
   "id": "uuid",
@@ -90,27 +90,27 @@ Study Sessions track the actual time spent learning.
 ```
 
 ### `GET /api/v1/study-sessions`
-**Purpose**: List study sessions for the user. Supports pagination (`skip`, `limit`).
+**Mục đích**: Lấy danh sách phiên học của người dùng. Hỗ trợ phân trang (`skip`, `limit`).
 
 ### `GET /api/v1/study-sessions/{id}`
-**Purpose**: Get details of a study session.
+**Mục đích**: Lấy chi tiết phiên học.
 
 ### `PUT /api/v1/study-sessions/{id}`
-**Purpose**: Update a study session.
+**Mục đích**: Cập nhật phiên học.
 
 ### `DELETE /api/v1/study-sessions/{id}`
-**Purpose**: Remove a study session.
+**Mục đích**: Xóa phiên học.
 
 ---
 
-## 3. Study Tasks API
+## 3. API Nhiệm vụ Học tập (Study Tasks)
 
-Study Tasks are actionable items, optionally linked to a specific course.
+Nhiệm vụ học tập (Study Tasks) là các công việc cụ thể, có thể liên kết với một môn học (Course).
 
 ### `POST /api/v1/study-tasks`
-**Purpose**: Create a task.
+**Mục đích**: Tạo một nhiệm vụ mới.
 **Headers**: `X-User-Id: <user_uuid>`
-**Request Body**:
+**Dữ liệu yêu cầu (Request)**:
 ```json
 {
   "course_id": "optional-course-uuid",
@@ -122,23 +122,23 @@ Study Tasks are actionable items, optionally linked to a specific course.
 ```
 
 ### `GET /api/v1/study-tasks`
-**Purpose**: List tasks for the user.
-**Query Parameters**: 
+**Mục đích**: Lấy danh sách nhiệm vụ của người dùng.
+**Parameters**: 
 - `skip`, `limit`
-- `course_id` (optional): Filter tasks by a specific course.
+- `course_id` (tùy chọn): Lọc nhiệm vụ theo môn học.
 
 ### `GET /api/v1/study-tasks/{id}`
-**Purpose**: Retrieve a task.
+**Mục đích**: Lấy chi tiết một nhiệm vụ.
 
 ### `PUT /api/v1/study-tasks/{id}`
-**Purpose**: Update a task. Can be used to mark a task as DONE.
+**Mục đích**: Cập nhật nhiệm vụ. Dùng để đánh dấu hoàn thành (DONE).
 
 ### `DELETE /api/v1/study-tasks/{id}`
-**Purpose**: Delete a task.
+**Mục đích**: Xóa nhiệm vụ.
 
-## Error Codes
+## Xử lý lỗi (Error Codes)
 
-- **400 Bad Request**: Invalid input data or database constraint violation.
-- **403 Forbidden**: Trying to access/modify a resource that belongs to another user.
-- **404 Not Found**: The resource, User, or Course ID does not exist.
-- **422 Unprocessable Entity**: Validation error on payload fields (e.g. invalid Enum value).
+- **400 Bad Request**: Dữ liệu đầu vào không hợp lệ.
+- **403 Forbidden**: Cố gắng truy cập/chỉnh sửa tài nguyên thuộc về người dùng khác.
+- **404 Not Found**: Tài nguyên, người dùng hoặc ID môn học không tồn tại.
+- **422 Unprocessable Entity**: Lỗi xác thực Pydantic (ví dụ: giá trị Enum không hợp lệ).
