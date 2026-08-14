@@ -13,6 +13,9 @@ Welcome to the FocusBuddy API documentation. This backend follows a structured l
 3. [Learning Activity Management](learning-api.md)
    API for managing user learning activities including Study Sessions, Study Tasks, and Learning Goals.
 
+4. [Mental & Psychology Management](mental-api.md)
+   API for tracking user's emotional and mental well-being, logging emotions and performing mental assessments.
+
 ## Architecture & Database
 
 - [Backend Architecture](../architecture/backend-architecture.md)

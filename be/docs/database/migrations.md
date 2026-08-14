@@ -38,5 +38,7 @@ If you need to undo the last applied migration:
 alembic downgrade -1
 ```
 
-## Migration Notes for Learning Activity Module
-During the implementation of the Learning Activity Module, it was verified that the Learning Models (`LearningGoal`, `StudySession`, `StudyTask`, etc.) were already included in the initial database schema (`e324c12bc635_initial_database_schema.py`). Thus, running `--autogenerate` for the Learning Activity Module yielded an empty migration script, which was safely discarded. No new database revision was necessary.
+## Migration Notes for Module 3 (Learning) & Module 4 (Mental)
+During the implementation of the Learning Activity Module and Mental & Psychology Management Module, it was verified that their models (`LearningGoal`, `StudySession`, `EmotionLog`, `MentalAssessment`, etc.) were already included in the initial database schema (`e324c12bc635_initial_database_schema.py`). Thus, running `--autogenerate` for these modules yielded an empty migration script, which was safely discarded. No new database revision was necessary.
+
+*NOTE: Các bạn nhớ check xem port của db đang là 5433 hay 5432 nha
