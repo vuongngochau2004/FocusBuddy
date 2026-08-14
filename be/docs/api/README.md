@@ -19,6 +19,15 @@ Chào mừng đến với tài liệu API của FocusBuddy. Hệ thống backend
 5. [Quản lý và Xử lý File (File Management & Processing)](file-api.md)
    API hỗ trợ tải lên (upload), lưu trữ (storage) và trích xuất dữ liệu (extraction) từ các file văn bản và bảng tính.
 
+6. [Quản lý và Thống kê Điểm số (Grade & Academic Performance)](grade-api.md)
+   API nhập liệu và xem xét thành tích học tập.
+
+7. [Phân tích AI (AI Analysis)](ai-api.md)
+   API sinh các báo cáo tổng hợp bằng mô hình Ngôn ngữ Lớn (LLM).
+
+8. [Trợ lý Ảo (Chatbot)](chat-api.md)
+   API trò chuyện với sinh viên, sử dụng toàn bộ thông tin ngữ cảnh để hỗ trợ học tập cá nhân hóa.
+
 ## Kiến trúc & Database (Architecture & Database)
 
 - [Kiến trúc Backend (Backend Architecture)](../architecture/backend-architecture.md)
