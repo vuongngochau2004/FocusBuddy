@@ -7,3 +7,5 @@ pydantic-settings
 Faker
 passlib[bcrypt]
 email-validator
+python-multipart
+
