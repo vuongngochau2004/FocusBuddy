@@ -53,19 +53,10 @@ class FileService:
             raise HTTPException(status_code=400, detail="Empty file not allowed.")
             
         file_type = self._determine_file_type(file.filename)
-        # To strictly support CSV and TXT, wait, FileType doesn't have TXT.
         ext = file.filename.split(".")[-1].lower()
-        if ext == "txt":
-            # I will map TXT to CSV internally since they are both text? No, maybe I'll raise error if not supported by Enum.
-            # Let's map TXT to None to fail, unless we alter Enum. I cannot alter Enum without alembic.
-            # I will allow CSV processing.
-            pass
-
+        
         if not file_type and ext != "txt":
             raise HTTPException(status_code=415, detail=f"Unsupported file type: {ext}")
-            
-        if ext not in ["txt", "csv"]:
-            raise HTTPException(status_code=415, detail=f"Unsupported file type for extraction. Current supported types are TXT and CSV.")
             
         mapped_type = file_type if file_type else FileType.CSV # Fallback for TXT just to fit DB constraint
 
@@ -113,8 +104,28 @@ class FileService:
         elif ext == "csv":
             processor = CsvProcessor()
             method = ExtractionMethod.CSV_PARSER
+        elif ext in ["png", "jpg", "jpeg", "webp", "pdf"]:
+            import base64
+            from app.core.celery_app import celery_app
+            
+            try:
+                with open(db_file.storage_path, "rb") as f:
+                    b64_data = base64.b64encode(f.read()).decode('utf-8')
+                    
+                celery_app.send_task(
+                    "app.workers.ocr_tasks.extract_transcript_task",
+                    args=[b64_data, db_file.mime_type, None],
+                    task_id=str(db_file.id) # Use file_id as task_id for easy polling
+                )
+                db_file.status = FileStatus.PROCESSING
+                self.file_repo.db.commit()
+                return db_file
+            except Exception as e:
+                db_file.status = FileStatus.FAILED
+                self.file_repo.db.commit()
+                raise HTTPException(status_code=500, detail=f"Failed to queue OCR task: {str(e)}")
         else:
-            raise HTTPException(status_code=415, detail="Format not supported for extraction (only TXT and CSV supported without external dependencies)")
+            raise HTTPException(status_code=415, detail="Format not supported for extraction")
             
         try:
             raw_text, structured_data = processor.process(db_file.storage_path)

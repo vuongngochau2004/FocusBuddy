@@ -17,4 +17,7 @@ dependencies = [
     "email-validator",
     "python-multipart",
     "psycopg>=3.3.4",
+    "httpx",
+    "redis",
+    "celery",
 ]

@@ -82,12 +82,19 @@ services:
 
   ai:
     build: ./ai
-    container_name: focusbuddy_ai
+    container_name: focusbuddy_ai_worker
     restart: unless-stopped
-    ports:
-      - "${AI_PORT}:8100"
+    volumes:
+      - ./ai:/app
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
     env_file:
       - ./ai/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: celery -A app.core.celery_app.celery_app worker -Q ocr_queue --loglevel=info
 
 volumes:
   postgres_data:
