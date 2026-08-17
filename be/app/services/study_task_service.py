@@ -64,12 +64,31 @@ class StudyTaskService:
         data_dict = data_in.model_dump()
         data_dict["user_id"] = user_id
         try:
-            return self.repo.create(data_dict)
+            task = self.repo.create(data_dict)
+            
+            # Tự động tạo thông báo REMINDER nếu nhiệm vụ có deadline
+            if task.deadline:
+                from app.repositories.notification_repository import NotificationRepository
+                from app.models.module_8_recommendation_notification.notification import NotificationType
+                
+                noti_repo = NotificationRepository()
+                deadline_str = task.deadline.strftime("%d/%m/%Y %H:%M") if hasattr(task.deadline, 'strftime') else str(task.deadline)
+                
+                noti_data = {
+                    "user_id": user_id,
+                    "notification_type": NotificationType.REMINDER,
+                    "title": f"Nhiệm vụ mới: {task.title}",
+                    "content": f"Bạn vừa thêm nhiệm vụ mới. Hạn chót hoàn thành vào {deadline_str}. Hãy sắp xếp thời gian hợp lý nhé!",
+                    "is_read": False
+                }
+                noti_repo.create_notification(self.db, noti_data)
+                
+            return task
         except Exception as e:
             self.db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Could not create study task."
+                detail=f"Could not create study task. Error: {str(e)}"
             )
 
     def update(self, item_id: UUID, user_id: UUID, data_in: StudyTaskUpdate) -> StudyTask:

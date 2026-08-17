@@ -45,7 +45,22 @@ class AIService:
                 "title": rec.get("title"),
                 "content": rec.get("content")
             }
-            self.rec_repo.create_recommendation(db, rec_data)
+            saved_rec = self.rec_repo.create_recommendation(db, rec_data)
+            
+            # Tự động tạo thông báo RECOMMENDATION khi có đề xuất học tập mới từ AI
+            from app.repositories.notification_repository import NotificationRepository
+            from app.models.module_8_recommendation_notification.notification import NotificationType
+            
+            noti_repo = NotificationRepository()
+            noti_data = {
+                "user_id": user_id,
+                "recommendation_id": saved_rec.id,
+                "notification_type": NotificationType.RECOMMENDATION,
+                "title": f"Gợi ý học tập: {saved_rec.title}",
+                "content": saved_rec.content,
+                "is_read": False
+            }
+            noti_repo.create_notification(db, noti_data)
             
         return report
 

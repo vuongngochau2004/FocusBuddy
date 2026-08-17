@@ -195,3 +195,23 @@ export interface AcademicStatistic {
   rank?: string;
   updated_at: string;
 }
+
+// ===== NOTIFICATION =====
+export interface Notification {
+  id: string;
+  user_id: string;
+  recommendation_id?: string;
+  notification_type: 'REMINDER' | 'RECOMMENDATION' | 'SYSTEM' | 'ACADEMIC' | 'MENTAL_HEALTH';
+  title: string;
+  content: string;
+  is_read: boolean;
+  sent_at: string;
+  read_at?: string;
+  created_at: string;
+}
+
+export interface NotificationListResponse {
+  items: Notification[];
+  total: number;
+}
+
