@@ -44,3 +44,4 @@ env/
 scratch/
 sample_transcript.png
 ai/sample_transcript.png
+node_modules
