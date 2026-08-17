@@ -1,134 +1,84 @@
-# FocusBuddy (EduTrack AI) – Hệ Thống Theo Dõi Học Tập Tích Hợp Chatbot AI
+# FocusBuddy
 
-## Cấu trúc dự án
+## 1. Giới thiệu
 
-```
-Backend/                          ← NestJS Backend
-├── prisma/
-│   └── schema.prisma             ← Database schema (PostgreSQL)
-├── src/
-│   ├── main.ts                   ← Bootstrap + CORS + Swagger
-│   ├── app.module.ts             ← Root Module
-│   ├── prisma/
-│   │   ├── prisma.module.ts
-│   │   └── prisma.service.ts
-│   ├── common/
-│   │   └── decorators/
-│   │       └── current-user.decorator.ts
-│   └── modules/
-│       ├── auth/                 ← JWT Auth
-│       ├── grades/               ← Grade CRUD + Stats
-│       ├── upload/               ← File Upload + AI Extraction ⭐
-│       │   ├── upload.module.ts
-│       │   ├── upload.controller.ts
-│       │   ├── upload.service.ts
-│       │   └── grade-extractor.service.ts  ← Gemini Vision
-│       └── ai-agent/             ← Multi-Agent System ⭐
-│           ├── ai-agent.module.ts
-│           ├── ai-agent.controller.ts
-│           ├── ai-agent.service.ts         ← LangGraph Orchestrator
-│           └── agents/
-│               ├── supervisor.agent.ts     ← Intent Classification
-│               ├── academic.agent.ts       ← Academic Analysis
-│               └── psychology.agent.ts     ← Psychology Support
+FocusBuddy là hệ thống hỗ trợ học tập hiện đại.
 
-Frontend/                         ← React + Vite Frontend
-├── index.html
-├── vite.config.ts
-├── src/
-│   ├── main.tsx
-│   ├── App.tsx                   ← Shell + Navigation
-│   ├── index.css                 ← Design System (Dark Theme)
-│   ├── types/index.ts            ← Shared TypeScript types
-│   ├── api/client.ts             ← Axios + API functions
-│   └── components/
-│       ├── Dashboard.tsx         ← Charts + Upload + Grade Table ⭐
-│       └── ChatBot.tsx           ← Multi-agent Chat UI ⭐
+## 2. Kiến trúc
 
-AI/                               ← AI Services & Models
+Hệ thống được thiết kế theo mô hình client-server, sử dụng cơ sở dữ liệu quan hệ và hệ thống background task qua message broker. 
+Cụ thể, ứng dụng bao gồm Frontend giao tiếp với Backend API, được quản lý và xử lý dữ liệu qua PostgreSQL và Redis (với Celery). AI Service đang được triển khai như một module độc lập (Task 3) và sẽ giao tiếp qua Redis (Task 4).
+
+```text
+Frontend
+   │
+   ▼
+Backend
+   │
+   ├──────────► PostgreSQL
+   │
+   └──────────► Redis
+                   │
+                   ├── Celery Worker
+                   │
+                   └── Future AI communication
+
+AI
+ │
+ ▼
+LLM Provider
 ```
 
-## Luồng dữ liệu Upload Bảng Điểm
+## 3. Công nghệ
 
-```
-Frontend (UploadZone)
-  │── POST /api/upload/grade-sheet (multipart/form-data)
-  │
-Backend (UploadController)
-  │── UploadService.saveFile()         → lưu DB, status=PENDING
-  │── [async] extractAndSaveGrades()   → background job
-  │     │── status = PROCESSING
-  │     │── GradeExtractorService.extract()
-  │     │     ├── [PDF/Image] → Gemini 1.5 Pro (multimodal)
-  │     │     └── [Excel]     → xlsx parser → Gemini 1.5 Flash
-  │     │── Parse JSON grades
-  │     └── Upsert vào DB (Course + Grade)
-  │
-Frontend polling GET /api/upload/:id/status (mỗi 2 giây)
-  └── Khi DONE → refresh Dashboard charts
-```
+Dự án hiện đang sử dụng các công nghệ sau:
+- **Frontend**: Next.js
+- **Backend**: FastAPI
+- **Cơ sở dữ liệu**: PostgreSQL
+- **Message Broker / Cache**: Redis
+- **Background Task**: Celery
+- **Containerization**: Docker & Docker Compose
 
-## Luồng Multi-Agent Chat
+## 4. Yêu cầu
 
-```
-User message
-    │
-    ▼
-[SUPERVISOR AGENT] - Gemini Flash (nhanh, rẻ)
-    │  classify: ACADEMIC | PSYCHOLOGY | GENERAL
-    │
- ┌──┴─────────────────┐
- ▼                    ▼
-[ACADEMIC AGENT]   [PSYCHOLOGY AGENT]
- Gemini Pro         Gemini Pro
- + Grade context    + Psychology log context
- + Chat history     + Chat history
-    │                    │
-    └────────┬───────────┘
-             ▼
-     Save to ChatHistory DB
-             │
-             ▼
-     Return to Frontend
-     (với intentScore %)
-```
+- Docker
+- Docker Compose
 
-## Biến môi trường (.env)
+## 5. Cài đặt
 
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/edutrack"
-GEMINI_API_KEY="your-google-gemini-api-key"
-JWT_SECRET="your-super-secret-jwt-key"
-JWT_REFRESH_SECRET="your-refresh-secret"
-PORT=3000
-```
+1. Clone kho lưu trữ về máy:
+   ```bash
+   git clone <repository_url>
+   cd FocusBuddy
+   ```
+2. Copy template biến môi trường (environment variables):
+   ```bash
+   cp .env.example .env
+   ```
+3. Chỉnh sửa file `.env` với các cấu hình phù hợp (mật khẩu, port,...).
 
-## Khởi chạy
+## 6. Chạy Docker
 
-### Backend
+Khởi động toàn bộ hệ thống bằng Docker Compose:
 ```bash
-cd Backend
-npm install
-npx prisma migrate dev --name init
-npm run start:dev
-# API: http://localhost:3000
-# Swagger: http://localhost:3000/docs
+docker compose up --build -d
 ```
+Sau đó, bạn có thể truy cập:
+- Frontend: `http://localhost:3000`
+- Backend API Docs: `http://localhost:8000/docs`
 
-### Frontend
-```bash
-cd Frontend
-npm install
-npm run dev
-# App: http://localhost:5173
-```
+## 7. Development
 
-## Dependencies cần thêm
+Môi trường development đã được cấu hình hot reload cho cả Frontend và Backend khi chạy bằng Docker. Mọi thay đổi trong mã nguồn (trong thư mục `fe/` và `be/`) sẽ tự động được phản ánh mà không cần build lại toàn bộ container (tuỳ thuộc vào file cấu hình `docker-compose.yml`).
 
-```bash
-# Backend - thêm xlsx cho Excel parsing
-npm install xlsx
+## 8. Documentation
 
-# Frontend
-npm install  # đã có trong package.json
-```
+Để tìm hiểu chi tiết về từng thành phần, vui lòng xem tài liệu tại thư mục `docs/`:
+
+- [Tài liệu tổng hợp (Documentation Index)](docs/README.md)
+- [Kiến trúc (Architecture)](docs/architecture.md)
+- [Docker](docs/docker.md)
+- [Backend](docs/backend.md)
+- [Frontend](docs/frontend.md)
+- [Redis](docs/redis.md)
+- [Celery](docs/celery.md)

@@ -1,0 +1,20 @@
+[project]
+name = "be"
+version = "0.1.0"
+description = "FocusBuddy Backend Service"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy",
+    "psycopg2-binary",
+    "psycopg-binary",
+    "alembic",
+    "pydantic-settings",
+    "faker",
+    "passlib[bcrypt]",
+    "email-validator",
+    "python-multipart",
+    "psycopg>=3.3.4",
+]
