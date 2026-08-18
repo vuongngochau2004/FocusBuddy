@@ -12,4 +12,4 @@ venv/
 *.pth
 *.onnx
 
-
+node_modules/

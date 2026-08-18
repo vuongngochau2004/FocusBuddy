@@ -1,4 +1,4 @@
-// File: /app/src/app/(app)/scores/page.tsx
+// File: G:\Chat Box\fe\src\app\(app)\scores\page.tsx
 import * as entry from '../../../../../src/app/(app)/scores/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
