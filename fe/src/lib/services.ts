@@ -17,6 +17,8 @@ import {
   ChatSession,
   ChatMessage,
   ChatMessageCreate,
+  Notification,
+  NotificationListResponse,
 } from '@/types';
 
 // ===== USER SERVICE =====
@@ -47,6 +49,8 @@ export const academicTermService = {
 export const courseService = {
   getAll: (skip = 0, limit = 100) =>
     api.get<CourseListResponse>('/v1/courses', { params: { skip, limit } }),
+  create: (data: any) =>
+    api.post<Course>('/v1/courses', data),
 };
 
 // ===== STUDY TASK SERVICE =====
@@ -119,8 +123,39 @@ export const chatService = {
 export const gradeService = {
   getAll: (skip = 0, limit = 100) =>
     api.get('/v1/grades', { params: { skip, limit } }),
+  create: (data: any) =>
+    api.post('/v1/grades', data),
+  update: (gradeId: string, data: any) =>
+    api.put(`/v1/grades/${gradeId}`, data),
+  delete: (gradeId: string) =>
+    api.delete(`/v1/grades/${gradeId}`),
+};
+
+// ===== ACADEMIC PERFORMANCE SERVICE =====
+export const academicPerformanceService = {
+  getStatistics: (skip = 0, limit = 100) =>
+    api.get<AcademicStatistic[]>('/v1/academic-performance', { params: { skip, limit } }),
+  getBasicStatistics: () =>
+    api.get<{
+      total_courses: number;
+      completed_courses: number;
+      failed_courses: number;
+      average_score: number;
+      highest_score: number;
+      lowest_score: number;
+    }>('/v1/academic-performance/basic-statistics'),
 };
 
 // ===== HEALTH CHECK =====
 export const healthCheck = () =>
   api.get('/v1/ping');
+
+// ===== NOTIFICATION SERVICE =====
+export const notificationService = {
+  getAll: (skip = 0, limit = 100) =>
+    api.get<NotificationListResponse>('/v1/notifications', { params: { skip, limit } }),
+  markRead: (notiId: string) =>
+    api.put<Notification>(`/v1/notifications/${notiId}/read`),
+  markAllRead: () =>
+    api.post('/v1/notifications/read-all'),
+};

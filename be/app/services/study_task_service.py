@@ -64,12 +64,35 @@ class StudyTaskService:
         data_dict = data_in.model_dump()
         data_dict["user_id"] = user_id
         try:
-            return self.repo.create(data_dict)
+            # Tạo instance StudyTask và add vào db session nhưng không commit ngay
+            task = StudyTask(**data_dict)
+            self.db.add(task)
+            self.db.flush()  # Flush để SQLAlchemy sinh ID cho task
+            
+            # Tự động tạo thông báo REMINDER nếu nhiệm vụ có deadline
+            if task.deadline:
+                from app.models.module_8_recommendation_notification.notification import Notification, NotificationType
+                
+                deadline_str = task.deadline.strftime("%d/%m/%Y %H:%M") if hasattr(task.deadline, 'strftime') else str(task.deadline)
+                
+                noti_data = {
+                    "user_id": user_id,
+                    "notification_type": NotificationType.REMINDER,
+                    "title": f"Nhiệm vụ mới: {task.title}",
+                    "content": f"Bạn vừa thêm nhiệm vụ mới. Hạn chót hoàn thành vào {deadline_str}. Hãy sắp xếp thời gian hợp lý nhé!",
+                    "is_read": False
+                }
+                noti = Notification(**noti_data)
+                self.db.add(noti)
+                
+            self.db.commit()
+            self.db.refresh(task)
+            return task
         except Exception as e:
             self.db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Could not create study task."
+                detail=f"Could not create study task. Error: {str(e)}"
             )
 
     def update(self, item_id: UUID, user_id: UUID, data_in: StudyTaskUpdate) -> StudyTask:
