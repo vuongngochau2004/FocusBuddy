@@ -12,11 +12,11 @@ class AIService:
         self.report_repo = AIAnalysisRepository()
         self.rec_repo = RecommendationRepository()
 
-    def generate_analysis(self, db: Session, user_id: UUID, request: AIAnalysisRequest) -> AIAnalysisReport:
+    async def generate_analysis(self, db: Session, user_id: UUID, request: AIAnalysisRequest) -> AIAnalysisReport:
         orchestrator = AgentOrchestrator(db, user_id)
         
         # Run AI Analysis through Orchestrator
-        ai_result = orchestrator.run_analysis(
+        ai_result = await orchestrator.run_analysis(
             report_type=request.report_type,
             additional_context=request.additional_context or ""
         )

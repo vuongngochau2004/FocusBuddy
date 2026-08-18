@@ -2,9 +2,14 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     DATABASE_URL : str
-    AI_PROVIDER : str | None = None
-    AI_MODEL : str | None = None
-    AI_API_KEY : str | None = None
+    REDIS_URL: str | None = None
+    CELERY_BROKER_URL: str | None = None
+    CELERY_RESULT_BACKEND: str | None = None
+    LLM_BASE_URL : str | None = None
+    LLM_MODEL : str | None = None
+    LLM_API_KEY : str | None = None
+    LLM_TIMEOUT : int = 60
+    LLM_TEMPERATURE : float = 0.7
     
     class Config:
         env_file = ".env"

@@ -11,18 +11,18 @@ class AgentOrchestrator:
         self.context_builder = AIContextBuilder(db, user_id)
         self.provider = AIProvider()
 
-    def run_analysis(self, report_type: ReportType, additional_context: str = "") -> dict:
+    async def run_analysis(self, report_type: ReportType, additional_context: str = "") -> dict:
         if report_type == ReportType.ACADEMIC:
             context = self.context_builder.build_academic_context()
             agent = GradeAnalysisAgent(self.provider)
-            return agent.analyze(context, additional_context)
+            return await agent.analyze(context, additional_context)
         
         elif report_type == ReportType.MENTAL_HEALTH:
             context = self.context_builder.build_mental_context()
             agent = PsychologyAgent(self.provider)
-            return agent.analyze(context, additional_context)
+            return await agent.analyze(context, additional_context)
             
         else: # GENERAL or MONTHLY_REVIEW
             context = self.context_builder.build_general_context()
             agent = StudyStatusAgent(self.provider)
-            return agent.analyze(context, additional_context)
+            return await agent.analyze(context, additional_context)
