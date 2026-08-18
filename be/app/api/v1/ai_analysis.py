@@ -15,13 +15,13 @@ def get_user_id(x_user_id: UUID = Header(...)) -> UUID:
     return x_user_id
 
 @router.post("/analyze")
-def generate_ai_analysis(
+async def generate_ai_analysis(
     request: AIAnalysisRequest,
     user_id: UUID = Depends(get_user_id),
     db: Session = Depends(get_db)
 ):
     try:
-        report = ai_service.generate_analysis(db, user_id, request)
+        report = await ai_service.generate_analysis(db, user_id, request)
         return {
             "message": "Phân tích thành công",
             "report_id": report.id
