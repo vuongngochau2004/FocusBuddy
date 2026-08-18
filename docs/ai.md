@@ -1,54 +1,44 @@
-# AI Layer của FocusBuddy
+# AI & OCR Layer của FocusBuddy
 
-Tài liệu này giới thiệu về AI Service của dự án (Task 3).
+Tài liệu này giới thiệu về AI OCR Service của dự án sau khi refactor.
 
-## 1. AI Layer là gì?
-AI Layer là một service độc lập được viết bằng FastAPI nằm tại thư mục `ai/`. Nó chịu trách nhiệm giao tiếp với LLM Provider, thiết lập System Prompts, giữ context trò chuyện và định dạng (normalize) các response gửi về cho hệ thống. 
+## 1. Vai trò của AI Layer
 
-AI Layer không tham gia trực tiếp vào việc lấy thông tin hay xác thực user từ Database, mà nhận dữ liệu đã được xử lý qua Backend (Trong tương lai sẽ giao tiếp thông qua Redis).
+Thay vì đóng vai trò làm máy chủ LLM trung gian như trước, AI Layer (`ai/`) hiện tại hoạt động dưới dạng một **Celery Worker** độc lập, chuyên trách cho các tác vụ Document Intelligence (chủ yếu là OCR và trích xuất bảng điểm). Toàn bộ logic LLM Chatbot, Context, và Prompts đã được chuyển sang Backend để tối ưu thời gian phản hồi (Streaming).
 
 ## 2. Architecture
-Quy trình hiện tại của một API Request cho AI Chatbot:
+
+Quy trình trích xuất OCR bất đồng bộ (Asynchronous):
 
 ```text
-Chat API (/api/v1/chat)
+User Upload File
         ↓
-Chatbot Service
+Backend API (/api/v1/files/upload -> process)
         ↓
-Prompt Builder (System Prompt + History + User Message)
+Backend đẩy Task vào Redis Queue (ocr_queue)
         ↓
-LLM Client (OpenAICompatibleProvider)
+AI Celery Worker (lắng nghe ocr_queue)
         ↓
-LLM Provider
+Tiền xử lý Ảnh (Upscale, Enhance)
+        ↓
+Vision LLM (Gemini / Custom LLM) hoặc PaddleOCR
+        ↓
+Trả kết quả JSON về Result Backend (Redis)
+        ↓
+Backend cập nhật Database
 ```
 
-## 3. Environment variables
-- `LLM_BASE_URL`: API Base URL của Provider hỗ trợ định dạng OpenAI API (Ví dụ: `http://llm.example.com/v1`).
-- `LLM_API_KEY`: Key truy cập nếu có.
-- `LLM_MODEL`: Tên của model (Ví dụ: `gpt-4`, `gemma-4-e4b-it`).
-- `LLM_TIMEOUT`: Giới hạn thời gian timeout request (mặc định 60s).
+## 3. Cấu hình Worker
 
-## 4. Chạy AI service
-AI service được đóng gói trong container và định nghĩa thông qua `docker-compose.yml` (service `ai`). Service hoạt động mặc định ở cổng host `8100`.
+Worker được cấu hình qua biến môi trường trong Docker:
+- `CELERY_BROKER_URL`: Địa chỉ Redis (mặc định `redis://redis:6379/0`).
+- `CELERY_RESULT_BACKEND`: Nơi lưu trữ kết quả (mặc định `redis://redis:6379/1`).
+- Các biến `LLM_*` cho việc dùng Custom LLM hoặc Gemini OCR.
 
-## 5. Test API
-Trải nghiệm AI service hoàn toàn độc lập thông qua giao diện Swagger UI tại đường dẫn:
-```text
-http://localhost:8100/docs
+## 4. Khởi chạy bằng Docker
+
+`ai/` service hiện được chạy thông qua lệnh Celery thay vì uvicorn:
+```bash
+celery -A app.core.celery_app.celery_app worker -Q ocr_queue --loglevel=info
 ```
-
-## 6. Error handling
-Tất cả lỗi từ provider đều được map vào HTTPException với HTTP Status tương ứng:
-- `401`: Lỗi API Key hoặc chứng thực.
-- `429`: Quá giới hạn gọi API (Rate Limit).
-- `504`: Yêu cầu gửi bị Timeout.
-- `502`: Lỗi chung khi làm việc với LLM Provider.
-
-## 7. Conversation context
-Service có khả năng giữ ngữ cảnh (history). Backend sẽ gửi lên mảng các object `conversation`. AI Service sẽ tự động cắt bớt lịch sử (Truncation) thông qua tham số `max_context_messages` (hiện tại là 20) trước khi tạo Prompt để chống tràn token context window.
-
-## 8. Docker
-`Dockerfile` độc lập ở `ai/Dockerfile`, sử dụng base `python:3.11-slim`, chạy FastAPI app với `uvicorn` trên `0.0.0.0:8100`.
-
-## 9. Future Redis integration
-Trong Task 4 sắp tới, hệ thống sẽ được mở rộng để Backend thay vì gọi trực tiếp tới FastAPI qua HTTP thì sẽ đẩy messages lên kênh Redis Queue và một `Redis Consumer` thuộc AI Layer sẽ lắng nghe, xử lý logic tương tự Chatbot Service, sau đó đẩy response trở lại Result Queue trên Redis.
+Khởi chạy kèm toàn hệ thống bằng `docker compose up -d`.
