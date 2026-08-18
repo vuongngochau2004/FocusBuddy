@@ -66,10 +66,8 @@ export default function ScoresPage() {
   const [dbTerms, setDbTerms] = useState<AcademicTerm[]>([]);
 
   // Upload States
-  const [uploadFrontName, setUploadFrontName] = useState('');
-  const [uploadBackName, setUploadBackName] = useState('');
-  const [isUploadingFront, setIsUploadingFront] = useState(false);
-  const [isUploadingBack, setIsUploadingBack] = useState(false);
+  const [uploadFileName, setUploadFileName] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   // Manual Modal States
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
@@ -80,8 +78,7 @@ export default function ScoresPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const fileInputFrontRef = useRef<HTMLInputElement>(null);
-  const fileInputBackRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadScoresData();
@@ -202,25 +199,13 @@ export default function ScoresPage() {
   };
 
   // Mock Upload Handlers
-  const handleUploadFront = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setUploadFrontName(file.name);
-      setIsUploadingFront(true);
+      setUploadFileName(file.name);
+      setIsUploading(true);
       setTimeout(() => {
-        setIsUploadingFront(false);
-        showToast('success', `Tải lên ${file.name} thành công! (Sẽ tự động trích xuất bằng AI khi tích hợp Backend)`);
-      }, 1500);
-    }
-  };
-
-  const handleUploadBack = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploadBackName(file.name);
-      setIsUploadingBack(true);
-      setTimeout(() => {
-        setIsUploadingBack(false);
+        setIsUploading(false);
         showToast('success', `Tải lên ${file.name} thành công! (Sẽ tự động trích xuất bằng AI khi tích hợp Backend)`);
       }, 1500);
     }
@@ -351,36 +336,19 @@ export default function ScoresPage() {
           <input
             type="file"
             accept="image/*"
-            ref={fileInputFrontRef}
-            onChange={handleUploadFront}
-            className="hidden"
-          />
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputBackRef}
-            onChange={handleUploadBack}
+            ref={fileInputRef}
+            onChange={handleUpload}
             className="hidden"
           />
 
           <button
-            onClick={() => fileInputFrontRef.current?.click()}
-            disabled={isUploadingFront}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
             className="glass-btn flex items-center gap-1.5 text-xs !py-2.5"
-            title="Upload ảnh mặt trước bảng điểm"
+            title="Upload ảnh bảng điểm"
           >
-            <Upload size={14} className={isUploadingFront ? 'animate-bounce text-primary-400' : ''} />
-            {isUploadingFront ? 'Đang tải...' : uploadFrontName ? 'Mặt trước ✓' : 'Upload mặt trước'}
-          </button>
-
-          <button
-            onClick={() => fileInputBackRef.current?.click()}
-            disabled={isUploadingBack}
-            className="glass-btn flex items-center gap-1.5 text-xs !py-2.5"
-            title="Upload ảnh mặt sau bảng điểm"
-          >
-            <Upload size={14} className={isUploadingBack ? 'animate-bounce text-primary-400' : ''} />
-            {isUploadingBack ? 'Đang tải...' : uploadBackName ? 'Mặt sau ✓' : 'Upload mặt sau'}
+            <Upload size={14} className={isUploading ? 'animate-bounce text-primary-400' : ''} />
+            {isUploading ? 'Đang tải...' : uploadFileName ? `${uploadFileName} ✓` : 'Upload ảnh bảng điểm'}
           </button>
 
           <button

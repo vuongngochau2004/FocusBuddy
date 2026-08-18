@@ -64,14 +64,15 @@ class StudyTaskService:
         data_dict = data_in.model_dump()
         data_dict["user_id"] = user_id
         try:
-            task = self.repo.create(data_dict)
+            # Tạo instance StudyTask và add vào db session nhưng không commit ngay
+            task = StudyTask(**data_dict)
+            self.db.add(task)
+            self.db.flush()  # Flush để SQLAlchemy sinh ID cho task
             
             # Tự động tạo thông báo REMINDER nếu nhiệm vụ có deadline
             if task.deadline:
-                from app.repositories.notification_repository import NotificationRepository
-                from app.models.module_8_recommendation_notification.notification import NotificationType
+                from app.models.module_8_recommendation_notification.notification import Notification, NotificationType
                 
-                noti_repo = NotificationRepository()
                 deadline_str = task.deadline.strftime("%d/%m/%Y %H:%M") if hasattr(task.deadline, 'strftime') else str(task.deadline)
                 
                 noti_data = {
@@ -81,8 +82,11 @@ class StudyTaskService:
                     "content": f"Bạn vừa thêm nhiệm vụ mới. Hạn chót hoàn thành vào {deadline_str}. Hãy sắp xếp thời gian hợp lý nhé!",
                     "is_read": False
                 }
-                noti_repo.create_notification(self.db, noti_data)
+                noti = Notification(**noti_data)
+                self.db.add(noti)
                 
+            self.db.commit()
+            self.db.refresh(task)
             return task
         except Exception as e:
             self.db.rollback()
