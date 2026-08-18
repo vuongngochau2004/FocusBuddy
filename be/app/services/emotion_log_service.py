@@ -14,7 +14,24 @@ class EmotionLogService:
         
     def create(self, user_id: UUID, data: EmotionLogCreate) -> EmotionLog:
         new_log = EmotionLog(**data.model_dump(), user_id=user_id)
-        return self.repository.create(new_log)
+        saved_log = self.repository.create(new_log)
+        
+        # Tự động tạo thông báo MENTAL_HEALTH cảnh báo nếu mức độ stress cao (>= 7)
+        if saved_log.stress_level and saved_log.stress_level >= 7:
+            from app.repositories.notification_repository import NotificationRepository
+            from app.models.module_8_recommendation_notification.notification import NotificationType
+            
+            noti_repo = NotificationRepository()
+            noti_data = {
+                "user_id": user_id,
+                "notification_type": NotificationType.MENTAL_HEALTH,
+                "title": "Cảnh báo Stress cao 🧘",
+                "content": f"Hệ thống ghi nhận mức độ stress của bạn đang ở mức {saved_log.stress_level}/10. Đừng ép bản thân quá sức, hãy nghỉ ngơi một chút hoặc nói chuyện với AI Trợ lý nhé!",
+                "is_read": False
+            }
+            noti_repo.create_notification(self.repository.db, noti_data)
+            
+        return saved_log
         
     def get_by_id(self, id: UUID, user_id: UUID) -> EmotionLog:
         log = self.repository.get_by_id(id)

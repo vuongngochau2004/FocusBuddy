@@ -69,8 +69,8 @@ export default function Sidebar() {
             <Sparkles size={20} className="text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white">FocusBuddy</h1>
-            <p className="text-xs text-white/40">Trợ lý học tập AI</p>
+            <h1 className="text-lg font-bold text-slate-800 dark:text-white">FocusBuddy</h1>
+            <p className="text-xs text-slate-500 dark:text-white/40">Trợ lý học tập AI</p>
           </div>
         </div>
 
