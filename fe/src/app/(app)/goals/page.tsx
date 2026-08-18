@@ -25,10 +25,10 @@ const item = {
 };
 
 const statusConfig: Record<string, { icon: typeof Target; color: string; label: string; bg: string }> = {
-  NOT_STARTED: { icon: AlertCircle, color: 'text-white/40', label: 'Chưa bắt đầu', bg: 'bg-white/5' },
-  IN_PROGRESS: { icon: Clock, color: 'text-amber-400', label: 'Đang thực hiện', bg: 'bg-amber-400/10' },
-  COMPLETED: { icon: CheckCircle2, color: 'text-green-400', label: 'Hoàn thành', bg: 'bg-green-400/10' },
-  CANCELLED: { icon: AlertCircle, color: 'text-red-400/60', label: 'Đã hủy', bg: 'bg-red-400/5' },
+  NOT_STARTED: { icon: AlertCircle, color: 'text-slate-500 dark:text-white/40', label: 'Chưa bắt đầu', bg: 'bg-slate-200/50 dark:bg-white/5' },
+  IN_PROGRESS: { icon: Clock, color: 'text-amber-500', label: 'Đang thực hiện', bg: 'bg-amber-500/10' },
+  COMPLETED: { icon: CheckCircle2, color: 'text-green-500', label: 'Hoàn thành', bg: 'bg-green-500/10' },
+  CANCELLED: { icon: AlertCircle, color: 'text-red-500', label: 'Đã hủy', bg: 'bg-red-500/10' },
 };
 
 export default function GoalsPage() {
@@ -82,8 +82,8 @@ export default function GoalsPage() {
             <Target size={18} className="text-pink-400" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Mục tiêu học tập</h2>
-            <p className="text-sm text-white/40">Đặt mục tiêu và theo dõi tiến độ</p>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Mục tiêu học tập</h2>
+            <p className="text-sm text-slate-500 dark:text-white/40">Đặt mục tiêu và theo dõi tiến độ</p>
           </div>
         </div>
         <motion.button
@@ -101,27 +101,27 @@ export default function GoalsPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <motion.div variants={item} className="stat-card">
-          <p className="text-2xl font-bold text-white">{goals.length}</p>
-          <p className="text-sm text-white/40">Tổng mục tiêu</p>
+          <p className="text-2xl font-bold text-slate-800 dark:text-white">{goals.length}</p>
+          <p className="text-sm text-slate-500 dark:text-white/40">Tổng mục tiêu</p>
         </motion.div>
         <motion.div variants={item} className="stat-card">
-          <p className="text-2xl font-bold text-amber-400">{inProgressCount}</p>
-          <p className="text-sm text-white/40">Đang thực hiện</p>
+          <p className="text-2xl font-bold text-amber-500">{inProgressCount}</p>
+          <p className="text-sm text-slate-500 dark:text-white/40">Đang thực hiện</p>
         </motion.div>
         <motion.div variants={item} className="stat-card">
-          <p className="text-2xl font-bold text-green-400">{completedCount}</p>
-          <p className="text-sm text-white/40">Hoàn thành</p>
+          <p className="text-2xl font-bold text-green-500">{completedCount}</p>
+          <p className="text-sm text-slate-500 dark:text-white/40">Hoàn thành</p>
         </motion.div>
       </div>
 
       {/* Add Form */}
       {showAdd && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="glass-strong p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Thêm mục tiêu mới</h3>
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Thêm mục tiêu mới</h3>
           <form onSubmit={handleAdd} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm text-white/60">Tiêu đề</label>
+                <label className="text-sm text-slate-500 dark:text-white/60">Tiêu đề</label>
                 <input
                   type="text"
                   value={newGoal.title}
@@ -133,7 +133,7 @@ export default function GoalsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-white/60">Ngày kết thúc</label>
+                <label className="text-sm text-slate-500 dark:text-white/60">Ngày kết thúc</label>
                 <input
                   type="date"
                   value={newGoal.end_date}
@@ -145,7 +145,7 @@ export default function GoalsPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm text-white/60">Giá trị mục tiêu</label>
+                <label className="text-sm text-slate-500 dark:text-white/60">Giá trị mục tiêu</label>
                 <input
                   type="number"
                   value={newGoal.target_value}
@@ -157,7 +157,7 @@ export default function GoalsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-white/60">Đơn vị</label>
+                <label className="text-sm text-slate-500 dark:text-white/60">Đơn vị</label>
                 <input
                   type="text"
                   value={newGoal.unit}
@@ -183,8 +183,8 @@ export default function GoalsPage() {
         </div>
       ) : goals.length === 0 ? (
         <motion.div variants={item} className="glass p-12 text-center">
-          <Target size={40} className="text-white/15 mx-auto mb-3" />
-          <p className="text-white/40 text-sm">Chưa có mục tiêu nào. Hãy đặt mục tiêu đầu tiên!</p>
+          <Target size={40} className="text-slate-400 dark:text-white/15 mx-auto mb-3" />
+          <p className="text-slate-500 dark:text-white/40 text-sm">Chưa có mục tiêu nào. Hãy đặt mục tiêu đầu tiên!</p>
         </motion.div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -197,16 +197,16 @@ export default function GoalsPage() {
                 key={goal.id}
                 variants={item}
                 whileHover={{ scale: 1.01 }}
-                className="glass p-5 cursor-pointer hover:bg-white/[0.06] transition-all"
+                className="glass p-5 cursor-pointer hover:bg-slate-100/50 dark:hover:bg-white/[0.06] transition-all"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <h4 className="font-semibold text-white/85 text-sm">{goal.title}</h4>
+                  <h4 className="font-semibold text-slate-800 dark:text-white/85 text-sm">{goal.title}</h4>
                   <span className={`text-xs font-medium px-2 py-1 rounded-lg flex items-center gap-1 ${config.color} ${config.bg}`}>
                     <StatusIcon size={12} />
                     {config.label}
                   </span>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-white/30">
+                <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-white/30">
                   {goal.target_value && (
                     <span className="flex items-center gap-1">
                       <TrendingUp size={12} />
