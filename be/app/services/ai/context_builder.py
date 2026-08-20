@@ -4,6 +4,8 @@ from uuid import UUID
 from app.services.user_service import UserService
 from app.services.academic_performance_service import AcademicPerformanceService
 from app.services.learning_goal_service import LearningGoalService
+from app.repositories.emotion_log_repository import EmotionLogRepository
+from app.services.emotion_log_service import EmotionLogService
 
 class AIContextBuilder:
     """
@@ -17,6 +19,7 @@ class AIContextBuilder:
         self.user_service = UserService(db)
         self.academic_service = AcademicPerformanceService(db)
         self.goal_service = LearningGoalService(db)
+        self.emotion_service = EmotionLogService(EmotionLogRepository(db))
 
     def build_context(self, strategy: str) -> str:
         """
@@ -32,7 +35,7 @@ class AIContextBuilder:
             return self._build_mental_context()
         elif strategy == "general":
             return self._build_general_context()
-        
+    
         return ""
 
     def _build_general_context(self) -> str:
@@ -74,4 +77,20 @@ class AIContextBuilder:
             return f"Dữ liệu học thuật: Không thể tải ngữ cảnh (Lỗi: {str(e)})"
 
     def _build_mental_context(self) -> str:
-        return "Dữ liệu tâm lý: Gần đây không có bất thường tâm lý."
+        try:
+            logs, _ = self.emotion_service.get_all(skip=0, limit=1, user_id=self.user_id)
+            if logs:
+                latest_log = logs[0]
+                context = f"Dữ liệu tâm lý gần đây nhất (Ngày {latest_log.recorded_at.strftime('%d/%m/%Y')}): "
+                context += f"Cảm xúc chính: {latest_log.primary_emotion}. "
+                if latest_log.stress_level:
+                    context += f"Mức độ stress: {latest_log.stress_level}/10. "
+                if latest_log.energy_level:
+                    context += f"Mức năng lượng: {latest_log.energy_level}/10. "
+                if latest_log.notes:
+                    context += f"Ghi chú: {latest_log.notes}. "
+                return context
+            else:
+                return "Dữ liệu tâm lý: Người dùng chưa có bản ghi cảm xúc nào."
+        except Exception as e:
+            return f"Dữ liệu tâm lý: Không thể tải ngữ cảnh (Lỗi: {str(e)})"
