@@ -2,7 +2,8 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 
 from app.schemas.ai_analysis import AIAnalysisRequest
-from app.services.ai.orchestrator import AgentOrchestrator
+from app.services.ai.provider import AIProvider
+from app.services.ai.context_builder import AIContextBuilder
 from app.repositories.ai_analysis_repository import AIAnalysisRepository
 from app.repositories.recommendation_repository import RecommendationRepository
 from app.models.module_6_ai_analysis.ai_analysis_report import AIAnalysisReport
@@ -13,13 +14,20 @@ class AIService:
         self.rec_repo = RecommendationRepository()
 
     async def generate_analysis(self, db: Session, user_id: UUID, request: AIAnalysisRequest) -> AIAnalysisReport:
-        orchestrator = AgentOrchestrator(db, user_id)
-        
-        # Run AI Analysis through Orchestrator
-        ai_result = await orchestrator.run_analysis(
-            report_type=request.report_type,
-            additional_context=request.additional_context or ""
-        )
+        context_builder = AIContextBuilder(db, user_id)
+        provider = AIProvider()
+
+        if request.report_type == ReportType.ACADEMIC:
+            context = context_builder.build_academic_context()
+            prompt = "Bạn là chuyên gia tư vấn học thuật và phân tích điểm số. " + (request.additional_context or "")
+        elif request.report_type == ReportType.MENTAL_HEALTH:
+            context = context_builder.build_mental_context()
+            prompt = "Bạn là chuyên gia hỗ trợ tâm lý học tập. (Lưu ý: Không chẩn đoán bệnh). " + (request.additional_context or "")
+        else:
+            context = context_builder.build_general_context()
+            prompt = "Bạn là chuyên gia phân tích trạng thái học tập. " + (request.additional_context or "")
+
+        ai_result = await provider.generate_structured_analysis(prompt, context)
         
         # Build Report Data
         report_data = {

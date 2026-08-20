@@ -1,0 +1,30 @@
+﻿Folder PATH listing for volume Dulieu
+Volume serial number is 000000E2 F554:33E0
+D:\DUT AI CLUB\PROJECT\FORCUS_BUDDY\FOCUSBUDDY\DOCS
+|   README.md
+|   
++---ai
+|   |   AGENT-ARCHITETURE-DIAGRAM.png
+|   |   AGENT_ARCHITECTURE.md
+|   |   ai.md
+|   |   ROUTER_ALGORITHM.md
+|   |   
+|   \---ai_proposals
+|           00_OVERVIEW.md
+|           01_SUPERVISOR_IMPLEMENTATION.md
+|           02_SUB_AGENTS_IMPLEMENTATION.md
+|           
++---architecture
+|       architecture.md
+|       PROJECT_AUDIT_AND_ROADMAP.md
+|       REFACTOR_REPORT.md
+|       STRUTURE_SYSTEM.md
+|       Thi?t k? module database cho FocusBuddy.docx
+|       
+\---infrastructure
+        backend.md
+        celery.md
+        docker.md
+        frontend.md
+        redis.md
+        

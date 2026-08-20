@@ -2,18 +2,23 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from fastapi import HTTPException
 from typing import AsyncGenerator
+import logging
 
 from app.schemas.chat import ChatSessionCreate, ChatMessageCreate
 from app.repositories.chat_repository import ChatRepository
 from app.models.module_5_ai_chatbot.chat_message import SenderType, MessageType
-from app.services.ai.provider import AIProvider
-from app.services.ai.context_builder import AIContextBuilder
-from app.services.ai.prompts.system import SYSTEM_PROMPT
+
+# V2 Architecture Imports
+from app.services.ai.supervisor import Supervisor
+from app.services.ai.registry import AgentRegistry
+from app.services.ai.runtime import AgentRuntime
+
+logger = logging.getLogger(__name__)
 
 class ChatService:
     def __init__(self):
         self.repo = ChatRepository()
-        self.provider = AIProvider()
+        self.supervisor = Supervisor() # Singleton
 
     def create_session(self, db: Session, user_id: UUID, req: ChatSessionCreate):
         return self.repo.create_session(db, user_id, req.title)
@@ -41,30 +46,33 @@ class ChatService:
         }
         self.repo.create_message(db, user_msg_data)
 
-        # Get Chat History
-        history = self.repo.get_messages_by_session(db, session_id)
-        # Exclude the just added user message from history for context length, or include it?
-        # The provider adds it at the end, so we exclude the last one.
-        history = history[:-1] 
-        history_fmt = [{"role": msg.sender_type.value, "content": msg.content} for msg in history]
+        # V2: Route & Execute
+        try:
+            # 1. Classify Intent using Supervisor
+            agent_type = self.supervisor.classify_intent(req.content)
+            
+            # 2. Get Config from Registry
+            registry = AgentRegistry(db)
+            config = registry.get_config(agent_type)
+            
+            # 3. Initialize Runtime
+            runtime = AgentRuntime(db, config, str(user_id))
+            
+            # 4. Execute and Stream
+            full_reply = ""
+            async for chunk in runtime.execute_chat(req.content, str(session_id)):
+                full_reply += chunk
+                yield chunk
+                
+            # Save AI Message
+            ai_msg_data = {
+                "session_id": session_id,
+                "sender_type": SenderType.AGENT, # Or ASSISTANT
+                "content": full_reply,
+                "message_type": MessageType.TEXT
+            }
+            self.repo.create_message(db, ai_msg_data)
 
-        # Build Context
-        context_builder = AIContextBuilder(db, user_id)
-        context = context_builder.build_general_context()
-
-        # Generate AI Reply sys_prompt
-        sys_prompt = f"{SYSTEM_PROMPT}\n\nNgữ cảnh của học sinh:\n{context}"
-        
-        full_reply = ""
-        async for chunk in self.provider.generate_chat_response_stream(sys_prompt, history_fmt, req.content):
-            full_reply += chunk
-            yield chunk
-
-        # Save AI Message
-        ai_msg_data = {
-            "session_id": session_id,
-            "sender_type": SenderType.ASSISTANT,
-            "content": full_reply,
-            "message_type": MessageType.TEXT
-        }
-        self.repo.create_message(db, ai_msg_data)
+        except Exception as e:
+            logger.error(f"Error in chat processing: {e}")
+            yield "Đã có lỗi xảy ra trong quá trình kết nối với AI. Vui lòng thử lại sau."
