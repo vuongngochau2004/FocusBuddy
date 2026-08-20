@@ -9,8 +9,11 @@ from app.services.ai.tools.registry import ToolRegistry
 from app.services.ai.tools.executor import ToolExecutor
 # Assuming ContextBuilder and PromptBuilder will be implemented/refactored
 from app.services.ai.context_builder import AIContextBuilder
+from app.services.ai.prompt_builder import PromptBuilder
 
 logger = logging.getLogger(__name__)
+
+MAX_TOOL_ITERATIONS = 5
 
 class AgentRuntime:
     """
@@ -25,11 +28,11 @@ class AgentRuntime:
 
     async def execute_chat(self, user_message: str, session_id: str) -> AsyncGenerator[str, None]:
         """
-        Main execution loop for a chat turn.
+        Main execution loop for a chat turn, managing LLM calls and Tool invocations.
+        State Machine: CALL_LLM -> TOOL_CALL -> EXECUTE -> APPEND_RESULT -> CALL_LLM
         """
         # 1. Build Context
         context_builder = AIContextBuilder(self.db, self.user_id)
-        # Assuming build_context takes strategy from config
         context = context_builder.build_context(strategy=self.config.context_strategy)
 
         # 2. Prepare Tools Schema
@@ -38,40 +41,65 @@ class AgentRuntime:
             tools_schema = ToolRegistry.get_all_tools_schema(self.config.allowed_tools)
 
         # 3. Build Prompt (System, Few-Shot, History, Context, Current Message)
-        # For now, we simulate PromptBuilder logic here or assume it's done by a separate class
-        # In a real implementation, PromptBuilder.build() handles this.
-        messages = [
-            {"role": "system", "content": self.config.system_prompt}
-        ]
+        messages = PromptBuilder.build_messages(
+            config=self.config,
+            context=context,
+            history=[], # Tạm thời để trống history, sau này lấy từ ChatRepository
+            user_message=user_message
+        )
         
-        # Add Few-Shot
-        if self.config.few_shot_examples:
-            for example in self.config.few_shot_examples:
-                messages.append({"role": "user", "content": example.get("user", "")})
-                messages.append({"role": "assistant", "content": example.get("assistant", "")})
-                
-        # Add Context
-        messages.append({"role": "system", "content": f"User Context:\n{context}"})
-        
-        # Add History (mocking history fetch for now)
-        # history = ChatRepository.get_messages(limit=self.config.max_history_messages)
-        # messages.extend(history_format)
-        
-        # Add Current User Message
-        messages.append({"role": "user", "content": user_message})
+        sys_prompt = messages[0]["content"]
+        actual_history = messages[1:-1]
+        current_user_msg = messages[-1]["content"]
 
         # 4. LLM Loop (Handling Tool Calls)
-        # Current AIProvider might need an update to support tool_calls natively.
-        # This is a conceptual implementation of the loop:
-        
-        # We delegate the actual stream yielding to the provider
-        # For now, assuming provider.generate_chat_response_stream handles raw streaming
-        # In the future, if tool_calls are detected, we would intercept, call ToolExecutor, and re-prompt.
-        
-        async for chunk in self.provider.generate_chat_response_stream(
-            system_prompt=self.config.system_prompt, # Legacy compatibility
-            history=messages, # Pass structured messages
-            user_message=user_message,
-            model_name=self.config.model_name
-        ):
-            yield chunk.content
+        for iteration in range(MAX_TOOL_ITERATIONS):
+            has_tool_calls = False
+            tool_calls_accumulated = []
+            full_content = ""
+            
+            # STATE: CALL_LLM
+            async for chunk in self.provider.generate_chat_response_stream(
+                system_prompt=sys_prompt, 
+                history=actual_history, 
+                user_message=current_user_msg,
+                model_name=self.config.model_name,
+                tools=tools_schema
+            ):
+                if chunk.content:
+                    full_content += chunk.content
+                    yield chunk.content
+                    
+                if chunk.tool_calls:
+                    # STATE: TOOL_CALL detected
+                    has_tool_calls = True
+                    tool_calls_accumulated.extend(chunk.tool_calls)
+                    
+            if not has_tool_calls:
+                # STATE: FINAL_RESPONSE
+                break
+                
+            # APPEND to history to maintain conversational integrity
+            actual_history.append({"role": "user", "content": current_user_msg})
+            # Giả lập assistant response chứa raw function call để model nhớ ngữ cảnh
+            # Do LLMProvider hiện đang trả về Dict JSON-like, ta lưu dạng text string.
+            assistant_tool_msg = f"{full_content}\n[Tool Calls]: {json.dumps([tc.model_dump() for tc in tool_calls_accumulated], ensure_ascii=False)}"
+            actual_history.append({"role": "assistant", "content": assistant_tool_msg})
+            
+            tool_results_str = ""
+            # STATE: EXECUTE
+            for tc in tool_calls_accumulated:
+                success, result_str = await ToolExecutor.execute_tool_call(
+                    tool_name=tc.name,
+                    arguments=tc.arguments,
+                    allowed_tools=self.config.allowed_tools or [],
+                    user_id=str(self.user_id)
+                )
+                tool_results_str += f"\n[Kết quả Tool '{tc.name}']: {result_str}\n"
+                
+            # STATE: APPEND_RESULT (Prepare next user message)
+            current_user_msg = f"Hệ thống báo cáo kết quả công cụ (chỉ sử dụng làm ngữ cảnh, không cần lặp lại kết quả thô):\n{tool_results_str}\nHãy phân tích và trả lời người dùng dựa trên kết quả trên."
+            
+        else:
+            # Reached MAX_TOOL_ITERATIONS without breaking
+            yield "\n[Hệ thống: Vượt quá số lần gọi công cụ tối đa cho phép. Dừng thực thi để đảm bảo an toàn.]"
