@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
-from app.schemas.university import UniversityCreate, UniversityUpdate, UniversityResponse, UniversityListResponse
-from app.services.university_service import UniversityService
+from app.schemas.module_1_user_management.university import UniversityCreate, UniversityUpdate, UniversityResponse, UniversityListResponse
+from app.services.module_1_user_management.university_service import UniversityService
 
 router = APIRouter()
 

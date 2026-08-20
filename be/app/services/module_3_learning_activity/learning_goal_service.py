@@ -3,10 +3,10 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.repositories.learning_goal_repository import LearningGoalRepository
-from app.schemas.learning_goal import LearningGoalCreate, LearningGoalUpdate
+from app.repositories.module_3_learning_activity.learning_goal_repository import LearningGoalRepository
+from app.schemas.module_3_learning_activity.learning_goal import LearningGoalCreate, LearningGoalUpdate
 from app.models.module_3_learning_activity.learning_goal import LearningGoal
-from app.repositories.user_repository import UserRepository
+from app.repositories.module_1_user_management.user_repository import UserRepository
 
 class LearningGoalService:
     """

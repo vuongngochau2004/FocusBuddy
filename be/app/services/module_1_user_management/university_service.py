@@ -3,8 +3,8 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.repositories.university_repository import UniversityRepository
-from app.schemas.university import UniversityCreate, UniversityUpdate
+from app.repositories.module_1_user_management.university_repository import UniversityRepository
+from app.schemas.module_1_user_management.university import UniversityCreate, UniversityUpdate
 from app.models.module_1_user_management.university import University
 
 class UniversityService:

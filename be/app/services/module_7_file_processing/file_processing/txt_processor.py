@@ -1,4 +1,4 @@
-from app.services.file_processing.base import BaseFileProcessor
+from app.services.module_7_file_processing.file_processing.base import BaseFileProcessor
 from typing import Tuple, Any, Optional
 import os
 

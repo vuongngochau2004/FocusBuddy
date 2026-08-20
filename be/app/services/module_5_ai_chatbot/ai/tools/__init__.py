@@ -1,5 +1,5 @@
-from app.services.ai.tools.registry import ToolRegistry
-from app.services.ai.tools.academic import GetAcademicPerformanceTool, GetLearningGoalsTool
+from app.services.module_5_ai_chatbot.ai.tools.registry import ToolRegistry
+from app.services.module_5_ai_chatbot.ai.tools.academic import GetAcademicPerformanceTool, GetLearningGoalsTool
 
 def register_all_tools():
     """

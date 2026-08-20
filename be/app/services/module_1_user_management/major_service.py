@@ -3,9 +3,9 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.repositories.major_repository import MajorRepository
-from app.repositories.university_repository import UniversityRepository
-from app.schemas.major import MajorCreate, MajorUpdate
+from app.repositories.module_1_user_management.major_repository import MajorRepository
+from app.repositories.module_1_user_management.university_repository import UniversityRepository
+from app.schemas.module_1_user_management.major import MajorCreate, MajorUpdate
 from app.models.module_1_user_management.major import Major
 
 class MajorService:

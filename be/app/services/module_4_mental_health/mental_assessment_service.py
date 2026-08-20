@@ -1,9 +1,9 @@
 from typing import List, Optional
 from uuid import UUID
 from fastapi import HTTPException
-from app.schemas.mental_assessment import MentalAssessmentCreate, MentalAssessmentUpdate
+from app.schemas.module_4_mental_health.mental_assessment import MentalAssessmentCreate, MentalAssessmentUpdate
 from app.models.module_4_mental_health.mental_assessment import MentalAssessment
-from app.repositories.mental_assessment_repository import MentalAssessmentRepository
+from app.repositories.module_4_mental_health.mental_assessment_repository import MentalAssessmentRepository
 
 class MentalAssessmentService:
     """

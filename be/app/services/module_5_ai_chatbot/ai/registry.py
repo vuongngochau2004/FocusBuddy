@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from app.models.module_5_ai_chatbot.agent_config import AgentConfig
-from app.repositories.agent_config_repository import AgentConfigRepository
+from app.repositories.module_5_ai_chatbot.agent_config_repository import AgentConfigRepository
 
 logger = logging.getLogger(__name__)
 

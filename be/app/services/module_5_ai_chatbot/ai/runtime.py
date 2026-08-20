@@ -4,12 +4,12 @@ from typing import AsyncGenerator
 from sqlalchemy.orm import Session
 
 from app.models.module_5_ai_chatbot.agent_config import AgentConfig
-from app.services.ai.provider import ProviderFactory
-from app.services.ai.tools.registry import ToolRegistry
-from app.services.ai.tools.executor import ToolExecutor
+from app.services.module_5_ai_chatbot.ai.provider import ProviderFactory
+from app.services.module_5_ai_chatbot.ai.tools.registry import ToolRegistry
+from app.services.module_5_ai_chatbot.ai.tools.executor import ToolExecutor
 # Assuming ContextBuilder and PromptBuilder will be implemented/refactored
-from app.services.ai.context_builder import AIContextBuilder
-from app.services.ai.prompt_builder import PromptBuilder
+from app.services.module_5_ai_chatbot.ai.context_builder import AIContextBuilder
+from app.services.module_5_ai_chatbot.ai.prompt_builder import PromptBuilder
 
 logger = logging.getLogger(__name__)
 

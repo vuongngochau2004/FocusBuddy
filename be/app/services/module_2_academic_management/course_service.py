@@ -3,9 +3,9 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.repositories.course_repository import CourseRepository
-from app.repositories.major_repository import MajorRepository
-from app.schemas.course import CourseCreate, CourseUpdate
+from app.repositories.module_2_academic_management.course_repository import CourseRepository
+from app.repositories.module_1_user_management.major_repository import MajorRepository
+from app.schemas.module_2_academic_management.course import CourseCreate, CourseUpdate
 from app.models.module_2_academic_management.course import Course
 
 class CourseService:

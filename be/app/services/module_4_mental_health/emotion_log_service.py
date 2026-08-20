@@ -1,9 +1,9 @@
 from typing import List, Optional
 from uuid import UUID
 from fastapi import HTTPException
-from app.schemas.emotion_log import EmotionLogCreate, EmotionLogUpdate
+from app.schemas.module_4_mental_health.emotion_log import EmotionLogCreate, EmotionLogUpdate
 from app.models.module_4_mental_health.emotion_log import EmotionLog
-from app.repositories.emotion_log_repository import EmotionLogRepository
+from app.repositories.module_4_mental_health.emotion_log_repository import EmotionLogRepository
 
 class EmotionLogService:
     """
@@ -18,7 +18,7 @@ class EmotionLogService:
         
         # Tự động tạo thông báo MENTAL_HEALTH cảnh báo nếu mức độ stress cao (>= 7)
         if saved_log.stress_level and saved_log.stress_level >= 7:
-            from app.repositories.notification_repository import NotificationRepository
+            from app.repositories.module_8_recommendation_notification.notification_repository import NotificationRepository
             from app.models.module_8_recommendation_notification.notification import NotificationType
             
             noti_repo = NotificationRepository()

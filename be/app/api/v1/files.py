@@ -4,8 +4,8 @@ from uuid import UUID
 from typing import List, Dict, Any
 
 from app.api.dependencies import get_db
-from app.schemas.uploaded_file import UploadedFileResponse, FileExtractionResponse
-from app.services.file_service import FileService
+from app.schemas.module_7_file_processing.uploaded_file import UploadedFileResponse, FileExtractionResponse
+from app.services.module_7_file_processing.file_service import FileService
 
 router = APIRouter()
 

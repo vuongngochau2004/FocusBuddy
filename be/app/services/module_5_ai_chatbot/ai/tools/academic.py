@@ -2,9 +2,9 @@ import json
 from typing import Dict, Any
 
 from app.core.database import SessionLocal
-from app.services.ai.tools.base import BaseTool
+from app.services.module_5_ai_chatbot.ai.tools.base import BaseTool
 from app.services.academic_performance_service import AcademicPerformanceService
-from app.services.learning_goal_service import LearningGoalService
+from app.services.module_3_learning_activity.learning_goal_service import LearningGoalService
 
 class GetAcademicPerformanceTool(BaseTool):
     name = "get_academic_performance"

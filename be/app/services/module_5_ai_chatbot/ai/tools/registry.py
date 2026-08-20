@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 import logging
 
-from app.services.ai.tools.base import BaseTool
+from app.services.module_5_ai_chatbot.ai.tools.base import BaseTool
 
 logger = logging.getLogger(__name__)
 

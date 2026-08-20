@@ -1,13 +1,13 @@
 from sqlalchemy.orm import Session
 from uuid import UUID
 
-from app.schemas.ai_analysis import AIAnalysisRequest
-from app.services.ai.provider import ProviderFactory
-from app.services.ai.context_builder import AIContextBuilder
-from app.repositories.ai_analysis_repository import AIAnalysisRepository
-from app.repositories.recommendation_repository import RecommendationRepository
+from app.schemas.module_6_ai_analysis.ai_analysis import AIAnalysisRequest
+from app.services.module_5_ai_chatbot.ai.provider import ProviderFactory
+from app.services.module_5_ai_chatbot.ai.context_builder import AIContextBuilder
+from app.repositories.module_6_ai_analysis.ai_analysis_repository import AIAnalysisRepository
+from app.repositories.module_8_recommendation_notification.recommendation_repository import RecommendationRepository
 from app.models.module_6_ai_analysis.ai_analysis_report import AIAnalysisReport
-from app.repositories.notification_repository import NotificationRepository
+from app.repositories.module_8_recommendation_notification.notification_repository import NotificationRepository
 from app.models.module_8_recommendation_notification.notification import NotificationType
 
 

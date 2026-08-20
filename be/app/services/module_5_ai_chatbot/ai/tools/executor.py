@@ -2,7 +2,7 @@ import logging
 import asyncio
 from typing import Dict, Any, Tuple
 
-from app.services.ai.tools.registry import ToolRegistry
+from app.services.module_5_ai_chatbot.ai.tools.registry import ToolRegistry
 
 logger = logging.getLogger(__name__)
 

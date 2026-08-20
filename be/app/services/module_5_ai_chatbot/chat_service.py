@@ -4,14 +4,14 @@ from fastapi import HTTPException
 from typing import AsyncGenerator
 import logging
 
-from app.schemas.chat import ChatSessionCreate, ChatMessageCreate
-from app.repositories.chat_repository import ChatRepository
+from app.schemas.module_5_ai_chatbot.chat import ChatSessionCreate, ChatMessageCreate
+from app.repositories.module_5_ai_chatbot.chat_repository import ChatRepository
 from app.models.module_5_ai_chatbot.chat_message import SenderType, MessageType
 
 # V2 Architecture Imports
-from app.services.ai.supervisor import Supervisor
-from app.services.ai.registry import AgentRegistry
-from app.services.ai.runtime import AgentRuntime
+from app.services.module_5_ai_chatbot.ai.supervisor import Supervisor
+from app.services.module_5_ai_chatbot.ai.registry import AgentRegistry
+from app.services.module_5_ai_chatbot.ai.runtime import AgentRuntime
 
 logger = logging.getLogger(__name__)
 
