@@ -24,6 +24,7 @@ flowchart TD
     CELERY_OCR -->|Trả kết quả| REDIS
     REDIS -->|Update| BE
 ```
+![alt text](Architecture-System.png)
 
 - **Frontend**: Giao diện người dùng (Next.js).
 - **Backend**: Xử lý API, logic kinh doanh. Tích hợp trực tiếp các Agent và LLM Prompts để phản hồi Chatbot theo dạng Streaming cực nhanh, không qua bước trung gian.
