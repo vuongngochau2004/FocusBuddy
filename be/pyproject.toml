@@ -20,4 +20,5 @@ dependencies = [
     "httpx",
     "redis",
     "celery",
+    "sentence-transformers",
 ]
