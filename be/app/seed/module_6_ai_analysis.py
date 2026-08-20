@@ -10,10 +10,10 @@ def seed_ai_agents(session: Session):
     logger.info(f"  [>] Seeding AI Agents...")
     agents = []
     agent_data = [
-        ("Learning Advisor", "STUDY_ANALYST", "gpt-4"),
-        ("Emotion Coach", "PSYCHOLOGY_ANALYST", "gpt-3.5-turbo"),
-        ("Career Guide", "COORDINATOR", "gpt-4"),
-        ("Schedule Optimizer", "REPORT_GENERATOR", "gpt-3.5-turbo")
+        ("Learning Advisor", "STUDY_ANALYST", "qwen2.5:7b"),
+        ("Emotion Coach", "PSYCHOLOGY_ANALYST", "ggml-org/gemma-4-e4b-it-GGUF:Q4_0"),
+        ("Career Guide", "COORDINATOR", "qwen2.5:7b"),
+        ("Schedule Optimizer", "REPORT_GENERATOR", "ggml-org/gemma-4-e4b-it-GGUF:Q4_0")
     ]
     
     for name, agent_type, model in agent_data:
