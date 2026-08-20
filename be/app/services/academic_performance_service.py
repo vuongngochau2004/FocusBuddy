@@ -4,7 +4,7 @@ from uuid import UUID
 from typing import List
 
 from app.models.module_1_user_management.student_profile import StudentProfile
-from app.repositories.academic_statistic_repository import AcademicStatisticRepository
+from app.repositories.module_2_academic_management.academic_statistic_repository import AcademicStatisticRepository
 from app.models.module_2_academic_management.academic_statistic import AcademicStatistic
 from app.models.module_2_academic_management.student_course import StudentCourse
 

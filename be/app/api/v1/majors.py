@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
-from app.schemas.major import MajorCreate, MajorUpdate, MajorResponse, MajorListResponse
-from app.services.major_service import MajorService
+from app.schemas.module_1_user_management.major import MajorCreate, MajorUpdate, MajorResponse, MajorListResponse
+from app.services.module_1_user_management.major_service import MajorService
 
 router = APIRouter()
 """

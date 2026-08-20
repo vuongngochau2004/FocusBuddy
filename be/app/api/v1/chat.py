@@ -4,8 +4,8 @@ from typing import List
 from uuid import UUID
 
 from app.api.dependencies import get_db
-from app.schemas.chat import ChatSessionCreate, ChatSessionResponse, ChatMessageCreate, ChatMessageResponse
-from app.services.chat_service import ChatService
+from app.schemas.module_5_ai_chatbot.chat import ChatSessionCreate, ChatSessionResponse, ChatMessageCreate, ChatMessageResponse
+from app.services.module_5_ai_chatbot.chat_service import ChatService
 
 router = APIRouter()
 chat_service = ChatService()
