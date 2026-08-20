@@ -56,6 +56,12 @@ class AgentConfig(Base):
         nullable=True,
     )
 
+    context_strategy: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+        comment="Strategy name for AIContextBuilder (e.g., 'academic', 'general')"
+    )
+
     max_history_messages: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
