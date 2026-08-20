@@ -2,11 +2,14 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 
 from app.schemas.ai_analysis import AIAnalysisRequest
-from app.services.ai.provider import AIProvider
+from app.services.ai.provider import OllamaProvider
 from app.services.ai.context_builder import AIContextBuilder
 from app.repositories.ai_analysis_repository import AIAnalysisRepository
 from app.repositories.recommendation_repository import RecommendationRepository
 from app.models.module_6_ai_analysis.ai_analysis_report import AIAnalysisReport
+from app.repositories.notification_repository import NotificationRepository
+from app.models.module_8_recommendation_notification.notification import NotificationType
+
 
 class AIService:
     def __init__(self):
@@ -15,7 +18,7 @@ class AIService:
 
     async def generate_analysis(self, db: Session, user_id: UUID, request: AIAnalysisRequest) -> AIAnalysisReport:
         context_builder = AIContextBuilder(db, user_id)
-        provider = AIProvider()
+        provider = OllamaProvider()
 
         if request.report_type == ReportType.ACADEMIC:
             context = context_builder.build_academic_context()
@@ -56,9 +59,6 @@ class AIService:
             saved_rec = self.rec_repo.create_recommendation(db, rec_data)
             
             # Tự động tạo thông báo RECOMMENDATION khi có đề xuất học tập mới từ AI
-            from app.repositories.notification_repository import NotificationRepository
-            from app.models.module_8_recommendation_notification.notification import NotificationType
-            
             noti_repo = NotificationRepository()
             noti_data = {
                 "user_id": user_id,

@@ -41,7 +41,7 @@ def seed_ai_logs_and_executions(session: Session, agents, chat_sessions):
         log = AIModelLog(
             agent_id=agent.id,
             model_name=agent.model_name,
-            provider="openai",
+            provider="ollama",
             input_tokens=random.randint(10, 50),
             output_tokens=random.randint(10, 100),
             response_time_ms=random.randint(500, 2000),
