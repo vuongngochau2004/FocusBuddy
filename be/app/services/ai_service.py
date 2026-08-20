@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 
 from app.schemas.ai_analysis import AIAnalysisRequest
-from app.services.ai.provider import OllamaProvider
+from app.services.ai.provider import ProviderFactory
 from app.services.ai.context_builder import AIContextBuilder
 from app.repositories.ai_analysis_repository import AIAnalysisRepository
 from app.repositories.recommendation_repository import RecommendationRepository
@@ -18,7 +18,7 @@ class AIService:
 
     async def generate_analysis(self, db: Session, user_id: UUID, request: AIAnalysisRequest) -> AIAnalysisReport:
         context_builder = AIContextBuilder(db, user_id)
-        provider = OllamaProvider()
+        provider = ProviderFactory.get_provider_for_model(None) # Default to local Qwen
 
         if request.report_type == ReportType.ACADEMIC:
             context = context_builder.build_academic_context()

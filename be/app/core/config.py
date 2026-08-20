@@ -8,7 +8,9 @@ class Settings(BaseSettings):
     LLM_PROVIDER: str = "ollama"
     OLLAMA_BASE_URL: str
     OLLAMA_MODEL_QWEN: str
-    OLLAMA_MODEL_GEMMA: str
+    LLM_BASE_URL: str
+    LLM_MODEL: str
+    LLM_API_KEY: str
     LLM_TIMEOUT: int = 60
     LLM_TEMPERATURE: float = 0.7
     
