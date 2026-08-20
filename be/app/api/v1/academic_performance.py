@@ -4,7 +4,7 @@ from typing import List, Dict
 from uuid import UUID
 
 from app.api.dependencies import get_db
-from app.schemas.academic_statistic import AcademicStatisticResponse
+from app.schemas.module_2_academic_management.academic_statistic import AcademicStatisticResponse
 from app.services.academic_performance_service import AcademicPerformanceService
 
 router = APIRouter()

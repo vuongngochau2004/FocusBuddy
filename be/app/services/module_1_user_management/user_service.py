@@ -3,8 +3,8 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.repositories.user_repository import UserRepository
-from app.schemas.user import UserCreate, UserUpdate
+from app.repositories.module_1_user_management.user_repository import UserRepository
+from app.schemas.module_1_user_management.user import UserCreate, UserUpdate
 from app.models.module_1_user_management.user import User
 from app.models.module_1_user_management.student_profile import StudentProfile
 from app.models.module_1_user_management.user_preference import UserPreference

@@ -3,9 +3,9 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.repositories.curriculum_repository import CurriculumRepository
-from app.repositories.major_repository import MajorRepository
-from app.schemas.curriculum import CurriculumCreate, CurriculumUpdate
+from app.repositories.module_2_academic_management.curriculum_repository import CurriculumRepository
+from app.repositories.module_1_user_management.major_repository import MajorRepository
+from app.schemas.module_2_academic_management.curriculum import CurriculumCreate, CurriculumUpdate
 from app.models.module_2_academic_management.curriculum import Curriculum
 
 class CurriculumService:

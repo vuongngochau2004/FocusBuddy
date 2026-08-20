@@ -7,8 +7,8 @@ from app.models.module_1_user_management.student_profile import StudentProfile
 from app.models.module_2_academic_management.student_course import StudentCourse, CourseStatus
 from app.models.module_7_file_processing.uploaded_file import UploadedFile
 from app.models.module_7_file_processing.file_extraction import FileExtraction
-from app.repositories.student_course_repository import StudentCourseRepository
-from app.schemas.student_course import StudentCourseCreate, StudentCourseUpdate
+from app.repositories.module_2_academic_management.student_course_repository import StudentCourseRepository
+from app.schemas.module_2_academic_management.student_course import StudentCourseCreate, StudentCourseUpdate
 from app.schemas.grade_import import GradeImportRequest, GradeImportResponse, GradeImportError
 
 class GradeService:

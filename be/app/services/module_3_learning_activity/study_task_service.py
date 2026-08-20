@@ -3,11 +3,11 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.repositories.study_task_repository import StudyTaskRepository
-from app.repositories.course_repository import CourseRepository
-from app.schemas.study_task import StudyTaskCreate, StudyTaskUpdate
+from app.repositories.module_3_learning_activity.study_task_repository import StudyTaskRepository
+from app.repositories.module_2_academic_management.course_repository import CourseRepository
+from app.schemas.module_3_learning_activity.study_task import StudyTaskCreate, StudyTaskUpdate
 from app.models.module_3_learning_activity.study_task import StudyTask
-from app.repositories.user_repository import UserRepository
+from app.repositories.module_1_user_management.user_repository import UserRepository
 
 class StudyTaskService:
     """

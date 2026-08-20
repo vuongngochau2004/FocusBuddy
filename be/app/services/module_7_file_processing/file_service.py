@@ -7,11 +7,11 @@ from datetime import datetime
 
 from app.models.module_7_file_processing.uploaded_file import FileType, FileStatus
 from app.models.module_7_file_processing.file_extraction import ExtractionMethod, ValidationStatus
-from app.repositories.uploaded_file_repository import UploadedFileRepository
-from app.repositories.file_extraction_repository import FileExtractionRepository
+from app.repositories.module_7_file_processing.uploaded_file_repository import UploadedFileRepository
+from app.repositories.module_7_file_processing.file_extraction_repository import FileExtractionRepository
 
-from app.services.file_processing.txt_processor import TxtProcessor
-from app.services.file_processing.csv_processor import CsvProcessor
+from app.services.module_7_file_processing.file_processing.txt_processor import TxtProcessor
+from app.services.module_7_file_processing.file_processing.csv_processor import CsvProcessor
 
 UPLOAD_DIR = "storage/uploads"
 

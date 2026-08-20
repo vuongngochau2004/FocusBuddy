@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
 from app.core.config import settings
-from app.services.ai.tools import register_all_tools
+from app.services.module_5_ai_chatbot.ai.tools import register_all_tools
 
 # Khởi tạo Tools
 register_all_tools()

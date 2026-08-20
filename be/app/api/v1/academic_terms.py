@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
-from app.schemas.academic_term import AcademicTermCreate, AcademicTermUpdate, AcademicTermResponse, AcademicTermListResponse
-from app.services.academic_term_service import AcademicTermService
+from app.schemas.module_2_academic_management.academic_term import AcademicTermCreate, AcademicTermUpdate, AcademicTermResponse, AcademicTermListResponse
+from app.services.module_2_academic_management.academic_term_service import AcademicTermService
 
 router = APIRouter()
 

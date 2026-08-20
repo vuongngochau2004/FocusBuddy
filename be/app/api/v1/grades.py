@@ -4,9 +4,9 @@ from typing import List, Optional
 from uuid import UUID
 
 from app.api.dependencies import get_db
-from app.schemas.student_course import StudentCourseCreate, StudentCourseUpdate, StudentCourseResponse
+from app.schemas.module_2_academic_management.student_course import StudentCourseCreate, StudentCourseUpdate, StudentCourseResponse
 from app.schemas.grade_import import GradeImportRequest, GradeImportResponse
-from app.services.grade_service import GradeService
+from app.services.module_2_academic_management.grade_service import GradeService
 
 router = APIRouter()
 

@@ -1,11 +1,11 @@
 from sqlalchemy.orm import Session
 from uuid import UUID
 
-from app.services.user_service import UserService
+from app.services.module_1_user_management.user_service import UserService
 from app.services.academic_performance_service import AcademicPerformanceService
-from app.services.learning_goal_service import LearningGoalService
-from app.repositories.emotion_log_repository import EmotionLogRepository
-from app.services.emotion_log_service import EmotionLogService
+from app.services.module_3_learning_activity.learning_goal_service import LearningGoalService
+from app.repositories.module_4_mental_health.emotion_log_repository import EmotionLogRepository
+from app.services.module_4_mental_health.emotion_log_service import EmotionLogService
 
 class AIContextBuilder:
     """

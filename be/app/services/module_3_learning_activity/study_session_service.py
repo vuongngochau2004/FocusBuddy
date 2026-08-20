@@ -3,10 +3,10 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.repositories.study_session_repository import StudySessionRepository
-from app.schemas.study_session import StudySessionCreate, StudySessionUpdate
+from app.repositories.module_3_learning_activity.study_session_repository import StudySessionRepository
+from app.schemas.module_3_learning_activity.study_session import StudySessionCreate, StudySessionUpdate
 from app.models.module_3_learning_activity.study_session import StudySession
-from app.repositories.user_repository import UserRepository
+from app.repositories.module_1_user_management.user_repository import UserRepository
 
 class StudySessionService:
     """

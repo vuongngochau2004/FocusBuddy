@@ -3,8 +3,8 @@ from fastapi import HTTPException
 from uuid import UUID
 from typing import List, Tuple
 
-from app.repositories.notification_repository import NotificationRepository
-from app.schemas.notification import NotificationCreate
+from app.repositories.module_8_recommendation_notification.notification_repository import NotificationRepository
+from app.schemas.module_8_recommendation_notification.notification import NotificationCreate
 from app.models.module_8_recommendation_notification.notification import Notification
 
 class NotificationService:

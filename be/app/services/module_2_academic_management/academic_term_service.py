@@ -3,8 +3,8 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.repositories.academic_term_repository import AcademicTermRepository
-from app.schemas.academic_term import AcademicTermCreate, AcademicTermUpdate
+from app.repositories.module_2_academic_management.academic_term_repository import AcademicTermRepository
+from app.schemas.module_2_academic_management.academic_term import AcademicTermCreate, AcademicTermUpdate
 from app.models.module_2_academic_management.academic_term import AcademicTerm
 
 class AcademicTermService:
