@@ -29,7 +29,8 @@ class LLMProvider(ABC):
         system_prompt: str, 
         history: List[Dict[str, str]], 
         user_message: str,
-        model_name: Optional[str] = None
+        model_name: Optional[str] = None,
+        tools: Optional[List[Dict[str, Any]]] = None
     ) -> AsyncGenerator[ChatResponseChunk, None]:
         pass
 
@@ -82,7 +83,8 @@ class OllamaProvider(LLMProvider):
         system_prompt: str, 
         history: List[Dict[str, str]], 
         user_message: str,
-        model_name: Optional[str] = None
+        model_name: Optional[str] = None,
+        tools: Optional[List[Dict[str, Any]]] = None
     ) -> AsyncGenerator[ChatResponseChunk, None]:
         
         messages = [{"role": "system", "content": system_prompt}]
@@ -97,6 +99,8 @@ class OllamaProvider(LLMProvider):
                 "temperature": self.temperature
             }
         }
+        if tools:
+            payload["tools"] = tools
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
@@ -186,7 +190,8 @@ class RemoteAPIProvider(LLMProvider):
         system_prompt: str, 
         history: List[Dict[str, str]], 
         user_message: str,
-        model_name: Optional[str] = None
+        model_name: Optional[str] = None,
+        tools: Optional[List[Dict[str, Any]]] = None
     ) -> AsyncGenerator[ChatResponseChunk, None]:
         
         messages = [{"role": "system", "content": system_prompt}]
@@ -199,6 +204,8 @@ class RemoteAPIProvider(LLMProvider):
             "temperature": self.temperature,
             "stream": True
         }
+        if tools:
+            payload["tools"] = tools
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
