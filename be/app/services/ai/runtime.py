@@ -4,7 +4,7 @@ from typing import AsyncGenerator
 from sqlalchemy.orm import Session
 
 from app.models.module_5_ai_chatbot.agent_config import AgentConfig
-from app.services.ai.provider import AIProvider
+from app.services.ai.provider import OllamaProvider
 from app.services.ai.tools.registry import ToolRegistry
 from app.services.ai.tools.executor import ToolExecutor
 # Assuming ContextBuilder and PromptBuilder will be implemented/refactored
@@ -22,7 +22,7 @@ class AgentRuntime:
         self.config = config
         self.user_id = user_id
         # We use the generic provider, which will resolve the actual model (e.g., Ollama) inside.
-        self.provider = AIProvider()
+        self.provider = OllamaProvider()
 
     async def execute_chat(self, user_message: str, session_id: str) -> AsyncGenerator[str, None]:
         """
@@ -70,9 +70,9 @@ class AgentRuntime:
         # In the future, if tool_calls are detected, we would intercept, call ToolExecutor, and re-prompt.
         
         async for chunk in self.provider.generate_chat_response_stream(
-            sys_prompt=self.config.system_prompt, # Legacy compatibility
+            system_prompt=self.config.system_prompt, # Legacy compatibility
             history=messages, # Pass structured messages
-            user_input=user_message,
-            model=self.config.model_name
+            user_message=user_message,
+            model_name=self.config.model_name
         ):
-            yield chunk
+            yield chunk.content
