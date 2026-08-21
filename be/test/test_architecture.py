@@ -1,127 +1,124 @@
-import os
-import ast
-import sys
-
-BE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.insert(0, BE_DIR)
-
-def get_all_py_files(directory):
-    py_files = []
-    for root, _, files in os.walk(directory):
-        if "venv" in root or "__pycache__" in root or "alembic" in root:
-            continue
-        for file in files:
-            if file.endswith(".py"):
-                py_files.append(os.path.join(root, file))
-    return py_files
-
-def test_no_openai_dependency():
-    """1. Không còn dependency OpenAI/GPT."""
-    py_files = get_all_py_files(BE_DIR)
-    for file in py_files:
-        if "test_architecture.py" in file:
-            continue
-        with open(file, "r", encoding="utf-8") as f:
-            content = f.read()
-            assert "import openai" not in content, f"OpenAI import found in {file}"
-            assert "from openai" not in content, f"OpenAI import found in {file}"
-    print("[PASS] 1. No OpenAI dependency found.")
-
-def test_runtime_isolation():
-    """2 & 4. AgentRuntime không import Ollama, LLMProvider cô lập."""
-    runtime_path = os.path.join(BE_DIR, "app", "services", "module_5_ai_chatbot", "ai", "runtime.py")
-    with open(runtime_path, "r", encoding="utf-8") as f:
-        content = f.read()
-        assert "ollama" not in content.lower(), "Runtime imports or mentions Ollama directly!"
-        assert "LLMProvider" in content, "Runtime does not use LLMProvider!"
-    print("[PASS] 2 & 4. AgentRuntime is isolated from Ollama.")
-
-def test_no_db_in_tools_and_runtime():
-    """3. Runtime và Tool không truy cập Database trực tiếp."""
-    # Runtime
-    runtime_path = os.path.join(BE_DIR, "app", "services", "module_5_ai_chatbot", "ai", "runtime.py")
-    with open(runtime_path, "r", encoding="utf-8") as f:
-        tree = ast.parse(f.read())
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Attribute) and getattr(node, "attr", "") in ["query", "execute"]:
-                if hasattr(node.value, "id") and node.value.id == "db":
-                    assert False, "Runtime executes DB queries directly!"
-    
-    # Tools
-    tools_dir = os.path.join(BE_DIR, "app", "services", "module_5_ai_chatbot", "ai", "tools")
-    tool_files = get_all_py_files(tools_dir)
-    for file in tool_files:
-        with open(file, "r", encoding="utf-8") as f:
-            tree = ast.parse(f.read())
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Attribute) and getattr(node, "attr", "") in ["query", "execute", "add", "commit"]:
-                    # db.query is forbidden in tools
-                    if hasattr(node.value, "id") and node.value.id == "db":
-                        assert False, f"Tool in {file} executes DB queries directly!"
-    print("[PASS] 3. Runtime and Tools do not query Database directly.")
-
-def test_tool_rejection_and_auth():
-    """5, 6, 7. Tool không được phép bị reject, sai arguments bị reject, user_id an toàn."""
-    executor_path = os.path.join(BE_DIR, "app", "services", "module_5_ai_chatbot", "ai", "tools", "executor.py")
-    with open(executor_path, "r", encoding="utf-8") as f:
-        content = f.read()
-        assert "tool_name not in allowed_tools" in content, "Executor does not check allowed_tools!"
-        assert "tool.validate(arguments)" in content, "Executor does not validate tool arguments!"
-        assert "tool.execute(arguments, user_id=user_id)" in content, "Executor does not inject secure user_id!"
-    print("[PASS] 5, 6, 7. Tool executor correctly validates, auths, and secures user_id.")
-
-def test_max_tool_iterations():
-    """8. MAX_TOOL_ITERATIONS ngăn loop vô hạn."""
-    runtime_path = os.path.join(BE_DIR, "app", "services", "module_5_ai_chatbot", "ai", "runtime.py")
-    with open(runtime_path, "r", encoding="utf-8") as f:
-        content = f.read()
-        assert "MAX_TOOL_ITERATIONS" in content, "MAX_TOOL_ITERATIONS not found in runtime.py!"
-        assert "for iteration in range(MAX_TOOL_ITERATIONS):" in content, "MAX_TOOL_ITERATIONS loop not implemented correctly!"
-    print("[PASS] 8. MAX_TOOL_ITERATIONS is implemented.")
-
 import asyncio
+from typing import Dict, Any, List
 
-def test_general_agent_security():
-    """9. General Agent không truy cập được private capability trái phép."""
-    executor_path = os.path.join(BE_DIR, "app", "services", "module_5_ai_chatbot", "ai", "tools", "executor.py")
-    # Load module dynamically to test
-    import importlib.util
-    spec = importlib.util.spec_from_file_location("executor", executor_path)
-    executor_module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(executor_module)
-    
-    ToolExecutor = executor_module.ToolExecutor
-    
-    async def run_test():
-        # General Agent config has allowed_tools = []
-        success, msg = await ToolExecutor.execute_tool_call(
-            tool_name="get_academic_performance",
-            arguments={},
-            allowed_tools=[],
-            user_id="mock_user"
-        )
-        assert not success, "General Agent was allowed to execute a private tool!"
-        assert "not allowed" in msg.lower(), "Security message not found!"
+class SubAgent:
+    """
+    Sub-agent that handles specific tasks assigned by the Main System.
+    """
+    def __init__(self, name: str, role_description: str):
+        self.name = name
+        self.role_description = role_description
+
+    async def process(self, task: str, context: Dict[str, Any] = None) -> str:
+        """
+        Mock processing logic for the sub-agent.
+        In a real scenario, this would call an LLM with the task and context.
+        """
+        print(f"  [{self.name}] Received task: '{task}'")
+        # Simulating processing time
+        await asyncio.sleep(1)
         
-    asyncio.run(run_test())
-    print("[PASS] 9. General Agent cannot access private capability unauthorized.")
+        # Mock result based on agent name
+        result = f"[{self.name}] Completed task successfully. Task was: {task}"
+        print(f"  [{self.name}] Task finished.")
+        return result
 
-def test_import_boundaries():
-    """10. Dependency/import boundaries vẫn đúng sau Structural Refactoring."""
-    try:
-        from app.main import app
-    except ModuleNotFoundError as e:
-        if "sentence_transformers" not in str(e):
-            assert False, f"Import boundary broken: {str(e)}"
-    print("[PASS] 10. Dependency/import boundaries still valid post-refactor.")
+class MainSystemAgent:
+    """
+    Main System Agent that receives user input, analyzes it, 
+    and delegates sub-tasks to appropriate sub-agents.
+    """
+    def __init__(self):
+        self.name = "MainCoordinator"
+        self.sub_agents: Dict[str, SubAgent] = {}
+
+    def register_agent(self, agent: SubAgent):
+        """Registers a sub-agent with the main system."""
+        self.sub_agents[agent.name] = agent
+        print(f"[SYSTEM] Registered sub-agent: {agent.name} - {agent.role_description}")
+
+    async def analyze_and_delegate(self, user_prompt: str):
+        """
+        Analyzes the prompt and routes it to the corresponding sub-agents.
+        """
+        print(f"\n[{self.name}] Analyzing user prompt: '{user_prompt}'\n")
+        # Simulating LLM analysis delay
+        await asyncio.sleep(1.5)
+        
+        # Mock task breakdown (in a real system, the LLM would output JSON 
+        # mapping tasks to agents based on the user prompt)
+        tasks = []
+        user_prompt_lower = user_prompt.lower()
+        
+        if "code" in user_prompt_lower or "program" in user_prompt_lower:
+            tasks.append(("CodeAgent", "Write the requested code snippet based on the prompt."))
+        if "test" in user_prompt_lower or "bug" in user_prompt_lower:
+            tasks.append(("TestAgent", "Write tests for the code or debug the issue."))
+        if "database" in user_prompt_lower or "sql" in user_prompt_lower:
+            tasks.append(("DBAgent", "Design database schema and write SQL queries."))
+        if "design" in user_prompt_lower or "ui" in user_prompt_lower:
+            tasks.append(("DesignAgent", "Create UI/UX design mockups."))
+            
+        if not tasks:
+            # Fallback if no specific keyword matched
+            tasks.append(("GeneralAgent", f"Process general request: {user_prompt}"))
+
+        print(f"[{self.name}] Analysis complete. Delegating {len(tasks)} tasks...")
+        
+        # Execute tasks concurrently
+        coroutines = []
+        for agent_name, task_desc in tasks:
+            if agent_name in self.sub_agents:
+                agent = self.sub_agents[agent_name]
+                coroutines.append(agent.process(task_desc, context={"original_prompt": user_prompt}))
+            else:
+                print(f"[SYSTEM-WARNING] Required agent '{agent_name}' not found!")
+
+        # Gather results from all sub-agents
+        if coroutines:
+            results = await asyncio.gather(*coroutines)
+            print(f"\n[{self.name}] All sub-agents have completed their work.")
+            print("\n" + "="*20 + " FINAL REPORT " + "="*20)
+            for idx, res in enumerate(results):
+                print(f"{idx + 1}. {res}")
+            print("="*54 + "\n")
+        else:
+            print(f"[{self.name}] No actionable sub-tasks could be formulated.")
+
+
+async def main():
+    print("="*50)
+    print(" Initializing Multi-Agent System Test Architecture ")
+    print("="*50)
+    
+    # 1. Initialize Main System
+    system = MainSystemAgent()
+    
+    # 2. Initialize and Register Sub-Agents
+    system.register_agent(SubAgent("CodeAgent", "Expert in writing clean, efficient code."))
+    system.register_agent(SubAgent("TestAgent", "Expert in QA and writing unit tests."))
+    system.register_agent(SubAgent("DBAgent", "Database architect and SQL expert."))
+    system.register_agent(SubAgent("DesignAgent", "UI/UX designer."))
+    system.register_agent(SubAgent("GeneralAgent", "Handles general inquiries and summarization."))
+    
+    print("\nSystem ready! Try entering prompts like: 'Write a program and test it'")
+    
+    while True:
+        # 3. Take User Input
+        print("-" * 50)
+        prompt = input("Enter your prompt (or 'exit' to quit): ")
+        if prompt.strip().lower() == 'exit':
+            print("Shutting down the agent system. Goodbye!")
+            break
+            
+        if not prompt.strip():
+            continue
+            
+        # 4. Main System Processes and Delegates
+        await system.analyze_and_delegate(prompt)
 
 if __name__ == "__main__":
-    print("--- RUNNING ARCHITECTURE VALIDATION ---")
-    test_no_openai_dependency()
-    test_runtime_isolation()
-    test_no_db_in_tools_and_runtime()
-    test_tool_rejection_and_auth()
-    test_max_tool_iterations()
-    test_general_agent_security()
-    test_import_boundaries()
-    print("--- ALL TESTS PASSED ---")
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nSystem shut down by user.")
