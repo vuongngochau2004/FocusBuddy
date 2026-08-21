@@ -29,6 +29,10 @@ const statusConfig: Record<string, { icon: typeof Target; color: string; label: 
   IN_PROGRESS: { icon: Clock, color: 'text-amber-500', label: 'Đang thực hiện', bg: 'bg-amber-500/10' },
   COMPLETED: { icon: CheckCircle2, color: 'text-green-500', label: 'Hoàn thành', bg: 'bg-green-500/10' },
   CANCELLED: { icon: AlertCircle, color: 'text-red-500', label: 'Đã hủy', bg: 'bg-red-500/10' },
+  // Backend statuses mappings
+  ACTIVE: { icon: Clock, color: 'text-amber-500', label: 'Đang thực hiện', bg: 'bg-amber-500/10' },
+  ACHIEVED: { icon: CheckCircle2, color: 'text-green-500', label: 'Hoàn thành', bg: 'bg-green-500/10' },
+  FAILED: { icon: AlertCircle, color: 'text-red-500', label: 'Thất bại', bg: 'bg-red-500/10' },
 };
 
 export default function GoalsPage() {
@@ -60,7 +64,7 @@ export default function GoalsPage() {
         target_value: newGoal.target_value ? parseFloat(newGoal.target_value) : undefined,
         unit: newGoal.unit || undefined,
         end_date: newGoal.end_date || undefined,
-        status: 'NOT_STARTED',
+        status: 'ACTIVE',
       });
       setShowAdd(false);
       setNewGoal({ title: '', target_value: '', unit: '', end_date: '' });
@@ -70,8 +74,8 @@ export default function GoalsPage() {
     }
   };
 
-  const completedCount = goals.filter((g) => g.status === 'COMPLETED').length;
-  const inProgressCount = goals.filter((g) => g.status === 'IN_PROGRESS').length;
+  const completedCount = goals.filter((g) => g.status === 'COMPLETED' || g.status === 'ACHIEVED').length;
+  const inProgressCount = goals.filter((g) => g.status === 'IN_PROGRESS' || g.status === 'ACTIVE').length;
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">

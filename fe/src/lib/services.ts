@@ -3,8 +3,11 @@ import {
   User,
   UserCreate,
   UserListResponse,
+  AcademicTerm,
   AcademicTermListResponse,
+  Course,
   CourseListResponse,
+  AcademicStatistic,
   StudyTask,
   StudyTaskCreate,
   StudyTaskListResponse,
@@ -13,7 +16,9 @@ import {
   LearningGoal,
   LearningGoalListResponse,
   EmotionLog,
+  EmotionLogListResponse,
   MentalAssessment,
+  MentalAssessmentListResponse,
   ChatSession,
   ChatMessage,
   ChatMessageCreate,
@@ -43,6 +48,9 @@ export const userService = {
 export const academicTermService = {
   getAll: (skip = 0, limit = 100) =>
     api.get<AcademicTermListResponse>('/v1/academic-terms', { params: { skip, limit } }),
+
+  create: (data: any) =>
+    api.post<AcademicTerm>('/v1/academic-terms', data),
 };
 
 // ===== COURSE SERVICE =====
@@ -92,7 +100,7 @@ export const learningGoalService = {
 // ===== EMOTION LOG SERVICE =====
 export const emotionLogService = {
   getAll: (skip = 0, limit = 100) =>
-    api.get<EmotionLog[]>('/v1/emotions', { params: { skip, limit } }),
+    api.get<EmotionLogListResponse>('/v1/emotions', { params: { skip, limit } }),
 
   create: (data: Partial<EmotionLog>) =>
     api.post<EmotionLog>('/v1/emotions', data),
@@ -101,7 +109,7 @@ export const emotionLogService = {
 // ===== MENTAL ASSESSMENT SERVICE =====
 export const mentalAssessmentService = {
   getAll: (skip = 0, limit = 100) =>
-    api.get<MentalAssessment[]>('/v1/assessments', { params: { skip, limit } }),
+    api.get<MentalAssessmentListResponse>('/v1/assessments', { params: { skip, limit } }),
 };
 
 // ===== CHAT SERVICE =====
