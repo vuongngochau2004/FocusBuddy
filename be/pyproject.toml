@@ -21,4 +21,6 @@ dependencies = [
     "redis",
     "celery",
     "sentence-transformers",
+    "bcrypt>=4.0.0",
+    "pyjwt>=2.8.0",
 ]

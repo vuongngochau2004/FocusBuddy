@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from uuid import UUID
 
-from app.api.dependencies import get_db
+from app.api.dependencies import get_db, get_current_user_id
 from app.schemas.module_6_ai_analysis.ai_analysis import AIAnalysisRequest, AIAnalysisResponse
 from app.schemas.module_8_recommendation_notification.recommendation import RecommendationResponse
 from app.services.module_5_ai_chatbot.ai_service import AIService
@@ -11,13 +11,10 @@ from app.services.module_5_ai_chatbot.ai_service import AIService
 router = APIRouter()
 ai_service = AIService()
 
-def get_user_id(x_user_id: UUID = Header(...)) -> UUID:
-    return x_user_id
-
 @router.post("/analyze")
 async def generate_ai_analysis(
     request: AIAnalysisRequest,
-    user_id: UUID = Depends(get_user_id),
+    user_id: UUID = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
     try:
@@ -32,7 +29,7 @@ async def generate_ai_analysis(
 @router.get("/reports", response_model=List[AIAnalysisResponse])
 def get_user_reports(
     skip: int = 0, limit: int = 100,
-    user_id: UUID = Depends(get_user_id),
+    user_id: UUID = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
     return ai_service.get_user_reports(db, user_id, skip, limit)
@@ -40,7 +37,7 @@ def get_user_reports(
 @router.get("/recommendations", response_model=List[RecommendationResponse])
 def get_user_recommendations(
     skip: int = 0, limit: int = 100,
-    user_id: UUID = Depends(get_user_id),
+    user_id: UUID = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
     return ai_service.get_user_recommendations(db, user_id, skip, limit)

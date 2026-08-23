@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 api_router = APIRouter()
 
+from app.api.v1.auth import router as auth_router
 from app.api.v1.user import router as user_router
 from app.api.v1.universities import router as university_router
 from app.api.v1.majors import router as major_router
@@ -20,6 +21,7 @@ from app.api.v1.ai_analysis import router as ai_analysis_router
 from app.api.v1.chat import router as chat_router
 from app.api.v1.notifications import router as notification_router
 
+api_router.include_router(auth_router, prefix="/v1/auth", tags=["Authentication"])
 api_router.include_router(user_router, prefix="/v1/users", tags=["Users"])
 api_router.include_router(university_router, prefix="/v1/universities", tags=["Universities"])
 api_router.include_router(major_router, prefix="/v1/majors", tags=["Majors"])
