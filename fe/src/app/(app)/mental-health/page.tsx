@@ -62,8 +62,8 @@ export default function MentalHealthPage() {
         emotionLogService.getAll(),
         mentalAssessmentService.getAll(),
       ]);
-      setEmotions(Array.isArray(emotionRes.data) ? emotionRes.data : []);
-      setAssessments(Array.isArray(assessmentRes.data) ? assessmentRes.data : []);
+      setEmotions(Array.isArray(emotionRes.data?.items) ? emotionRes.data.items : []);
+      setAssessments(Array.isArray(assessmentRes.data?.items) ? assessmentRes.data.items : []);
     } catch (err) {
       console.error('Failed to load data:', err);
     } finally {
@@ -75,7 +75,7 @@ export default function MentalHealthPage() {
     if (!selectedEmotion) return;
     try {
       await emotionLogService.create({
-        emotion: selectedEmotion,
+        emotion: selectedEmotion === 'ANGRY' ? 'STRESSED' : selectedEmotion,
         stress_level: levels.stress,
         motivation_level: levels.motivation,
         energy_level: levels.energy,
