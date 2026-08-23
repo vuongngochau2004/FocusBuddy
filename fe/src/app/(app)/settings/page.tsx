@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { Settings, User, Bell, Palette, Globe, Shield, Save } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+import { useAuth } from '@/hooks/useAuth';
+
 const container = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.06 } },
@@ -15,12 +17,16 @@ const item = {
 };
 
 export default function SettingsPage() {
+  const { user } = useAuth();
   const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
 
   useEffect(() => {
-    setUserName(localStorage.getItem('focusbuddy_user_name') || '');
-  }, []);
+    if (user) {
+      setUserName(user.full_name || '');
+      setEmail(user.email || '');
+    }
+  }, [user]);
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6 max-w-3xl">

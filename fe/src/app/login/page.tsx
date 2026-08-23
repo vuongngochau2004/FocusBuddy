@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, Sparkles, ArrowRight, Eye, EyeOff, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { userService } from '@/lib/services';
+import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from 'next-themes';
 
 export default function LoginPage() {
@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { login } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -26,21 +27,17 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // Tìm user theo email (demo flow — production nên có endpoint login riêng)
-      const res = await userService.getAll(0, 100);
-      const user = res.data.users.find(
-        (u) => u.email === email
-      );
-
-      if (user) {
-        localStorage.setItem('focusbuddy_user_id', user.id);
-        localStorage.setItem('focusbuddy_user_name', user.full_name);
-        window.location.href = '/dashboard';
+      await login({ email, password });
+      window.location.href = '/dashboard';
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail;
+      if (typeof detail === 'string') {
+        setError(detail);
+      } else if (err?.response?.status === 401 || err?.response?.status === 400) {
+        setError('Email hoặc mật khẩu không chính xác.');
       } else {
-        setError('Email không tồn tại. Vui lòng đăng ký trước.');
+        setError('Không thể kết nối tới server. Vui lòng thử lại sau.');
       }
-    } catch (err) {
-      setError('Không thể kết nối tới server. Hãy kiểm tra backend.');
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,8 @@
 import api from '@/lib/api';
 import {
+  LoginRequest,
+  UserRegisterRequest,
+  AuthResponse,
   User,
   UserCreate,
   UserListResponse,
@@ -26,14 +29,23 @@ import {
   NotificationListResponse,
 } from '@/types';
 
+// ===== AUTH SERVICE =====
+export const authService = {
+  register: (data: UserRegisterRequest) =>
+    api.post<AuthResponse>('/v1/auth/register', data),
+
+  login: (data: LoginRequest) =>
+    api.post<AuthResponse>('/v1/auth/login', data),
+
+  getMe: () =>
+    api.get<User>('/v1/auth/me'),
+
+  logout: () =>
+    api.post<{ message: string }>('/v1/auth/logout'),
+};
+
 // ===== USER SERVICE =====
 export const userService = {
-  create: (data: UserCreate) =>
-    api.post<User>('/v1/users', data),
-
-  getAll: (skip = 0, limit = 100) =>
-    api.get<UserListResponse>('/v1/users', { params: { skip, limit } }),
-
   getById: (userId: string) =>
     api.get<User>(`/v1/users/${userId}`),
 

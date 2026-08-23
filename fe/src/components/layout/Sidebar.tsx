@@ -17,6 +17,7 @@ import {
   Menu,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -30,6 +31,7 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { logout } = useAuth();
 
   return (
     <>
@@ -108,10 +110,7 @@ export default function Sidebar() {
           <button
             className="sidebar-link w-full text-red-400/70 hover:text-red-400"
             id="btn-logout"
-            onClick={() => {
-              localStorage.removeItem('focusbuddy_user_id');
-              window.location.href = '/login';
-            }}
+            onClick={logout}
           >
             <LogOut size={18} />
             <span>Đăng xuất</span>

@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export default function RootLayout({
   children,
@@ -21,9 +22,11 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          {/* Animated mesh gradient background */}
-          <div className="mesh-gradient" />
-          {children}
+          <AuthProvider>
+            {/* Animated mesh gradient background */}
+            <div className="mesh-gradient" />
+            {children}
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

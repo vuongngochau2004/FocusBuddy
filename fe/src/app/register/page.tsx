@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, User, Phone, Sparkles, ArrowRight, Eye, EyeOff, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { userService } from '@/lib/services';
+import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from 'next-themes';
 
 export default function RegisterPage() {
@@ -21,6 +21,7 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { register } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -36,20 +37,18 @@ export default function RegisterPage() {
     setError('');
 
     try {
-      const res = await userService.create({
+      await register({
         email: formData.email,
         full_name: formData.full_name,
         password: formData.password,
         phone_number: formData.phone_number || undefined,
       });
 
-      localStorage.setItem('focusbuddy_user_id', res.data.id);
-      localStorage.setItem('focusbuddy_user_name', res.data.full_name);
       setSuccess(true);
 
       setTimeout(() => {
         window.location.href = '/dashboard';
-      }, 1500);
+      }, 1000);
     } catch (err: any) {
       const detail = err?.response?.data?.detail;
       setError(typeof detail === 'string' ? detail : 'Đã xảy ra lỗi khi đăng ký.');

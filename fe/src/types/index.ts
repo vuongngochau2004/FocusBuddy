@@ -1,3 +1,24 @@
+// ===== AUTH =====
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface UserRegisterRequest {
+  email: string;
+  password: string;
+  full_name: string;
+  phone_number?: string;
+  avatar_url?: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  user: User;
+}
+
 // ===== USER =====
 export interface User {
   id: string;

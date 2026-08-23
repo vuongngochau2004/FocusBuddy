@@ -94,22 +94,68 @@ export default function ChatbotPage() {
     setInput('');
     setLoading(true);
 
+    const botMessageId = `bot-${Date.now()}`;
+    const botPlaceholder: ChatMessage = {
+      id: botMessageId,
+      session_id: sessionId,
+      sender_type: 'BOT',
+      content: '',
+      message_type: 'TEXT',
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, botPlaceholder]);
+
     try {
-      const res = await chatService.sendMessage(sessionId, {
-        content: input,
-        message_type: 'TEXT',
+      const token = typeof window !== 'undefined' ? localStorage.getItem('focusbuddy_token') : '';
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+      const response = await fetch(`${baseUrl}/v1/chat/sessions/${sessionId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          content: userMessage.content,
+          message_type: 'TEXT',
+        }),
       });
-      setMessages((prev) => [...prev.filter((m) => m.id !== userMessage.id), userMessage, res.data]);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error('No readable stream in response body');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedReply = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedReply += chunk;
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === botMessageId
+              ? { ...msg, content: accumulatedReply }
+              : msg
+          )
+        );
+      }
     } catch (err) {
-      const errorMsg: ChatMessage = {
-        id: `error-${Date.now()}`,
-        session_id: sessionId,
-        sender_type: 'BOT',
-        content: 'Xin lỗi, đã xảy ra lỗi khi xử lý tin nhắn. Vui lòng thử lại.',
-        message_type: 'TEXT',
-        created_at: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, errorMsg]);
+      console.error('Streaming error:', err);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === botMessageId
+            ? { ...msg, content: 'Xin lỗi, đã xảy ra lỗi khi kết nối với AI. Vui lòng thử lại sau.' }
+            : msg
+        )
+      );
     } finally {
       setLoading(false);
     }

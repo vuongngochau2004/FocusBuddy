@@ -16,6 +16,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
+import { useAuth } from '@/hooks/useAuth';
 import { notificationService } from '@/lib/services';
 import { Notification } from '@/types';
 
@@ -29,7 +30,8 @@ const notiIcon: Record<string, React.ReactNode> = {
 
 export default function TopBar() {
   const [greeting, setGreeting] = useState('');
-  const [userName, setUserName] = useState('Sinh viên');
+  const { user } = useAuth();
+  const userName = user?.full_name || 'Sinh viên';
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -44,9 +46,6 @@ export default function TopBar() {
     if (hour < 12) setGreeting('Chào buổi sáng');
     else if (hour < 18) setGreeting('Chào buổi chiều');
     else setGreeting('Chào buổi tối');
-
-    const name = localStorage.getItem('focusbuddy_user_name');
-    if (name) setUserName(name);
 
     loadNotifications();
   }, []);
