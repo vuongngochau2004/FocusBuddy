@@ -1,124 +1,93 @@
 import asyncio
-from typing import Dict, Any, List
+import sys
+import os
+import uuid
 
-class SubAgent:
-    """
-    Sub-agent that handles specific tasks assigned by the Main System.
-    """
-    def __init__(self, name: str, role_description: str):
-        self.name = name
-        self.role_description = role_description
+# Thêm đường dẫn thư mục 'be' vào sys.path để import được module 'app'
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-    async def process(self, task: str, context: Dict[str, Any] = None) -> str:
-        """
-        Mock processing logic for the sub-agent.
-        In a real scenario, this would call an LLM with the task and context.
-        """
-        print(f"  [{self.name}] Received task: '{task}'")
-        # Simulating processing time
-        await asyncio.sleep(1)
-        
-        # Mock result based on agent name
-        result = f"[{self.name}] Completed task successfully. Task was: {task}"
-        print(f"  [{self.name}] Task finished.")
-        return result
+from app.services.module_5_ai_chatbot.ai.router import IntentRouter
+from app.services.module_5_ai_chatbot.ai.runtime import AgentRuntime
+from app.models.module_5_ai_chatbot.agent_config import AgentConfig
 
-class MainSystemAgent:
-    """
-    Main System Agent that receives user input, analyzes it, 
-    and delegates sub-tasks to appropriate sub-agents.
-    """
-    def __init__(self):
-        self.name = "MainCoordinator"
-        self.sub_agents: Dict[str, SubAgent] = {}
-
-    def register_agent(self, agent: SubAgent):
-        """Registers a sub-agent with the main system."""
-        self.sub_agents[agent.name] = agent
-        print(f"[SYSTEM] Registered sub-agent: {agent.name} - {agent.role_description}")
-
-    async def analyze_and_delegate(self, user_prompt: str):
-        """
-        Analyzes the prompt and routes it to the corresponding sub-agents.
-        """
-        print(f"\n[{self.name}] Analyzing user prompt: '{user_prompt}'\n")
-        # Simulating LLM analysis delay
-        await asyncio.sleep(1.5)
-        
-        # Mock task breakdown (in a real system, the LLM would output JSON 
-        # mapping tasks to agents based on the user prompt)
-        tasks = []
-        user_prompt_lower = user_prompt.lower()
-        
-        if "code" in user_prompt_lower or "program" in user_prompt_lower:
-            tasks.append(("CodeAgent", "Write the requested code snippet based on the prompt."))
-        if "test" in user_prompt_lower or "bug" in user_prompt_lower:
-            tasks.append(("TestAgent", "Write tests for the code or debug the issue."))
-        if "database" in user_prompt_lower or "sql" in user_prompt_lower:
-            tasks.append(("DBAgent", "Design database schema and write SQL queries."))
-        if "design" in user_prompt_lower or "ui" in user_prompt_lower:
-            tasks.append(("DesignAgent", "Create UI/UX design mockups."))
-            
-        if not tasks:
-            # Fallback if no specific keyword matched
-            tasks.append(("GeneralAgent", f"Process general request: {user_prompt}"))
-
-        print(f"[{self.name}] Analysis complete. Delegating {len(tasks)} tasks...")
-        
-        # Execute tasks concurrently
-        coroutines = []
-        for agent_name, task_desc in tasks:
-            if agent_name in self.sub_agents:
-                agent = self.sub_agents[agent_name]
-                coroutines.append(agent.process(task_desc, context={"original_prompt": user_prompt}))
-            else:
-                print(f"[SYSTEM-WARNING] Required agent '{agent_name}' not found!")
-
-        # Gather results from all sub-agents
-        if coroutines:
-            results = await asyncio.gather(*coroutines)
-            print(f"\n[{self.name}] All sub-agents have completed their work.")
-            print("\n" + "="*20 + " FINAL REPORT " + "="*20)
-            for idx, res in enumerate(results):
-                print(f"{idx + 1}. {res}")
-            print("="*54 + "\n")
-        else:
-            print(f"[{self.name}] No actionable sub-tasks could be formulated.")
-
+# Mock DB Session cho mục đích test độc lập vì ta không chạy API Server
+class MockDB:
+    def query(self, *args, **kwargs):
+        pass
 
 async def main():
-    print("="*50)
-    print(" Initializing Multi-Agent System Test Architecture ")
-    print("="*50)
+    print("="*60)
+    print(" Khởi chạy Hệ thống AI Runtime (Kiến trúc thực tế) ")
+    print("="*60)
     
-    # 1. Initialize Main System
-    system = MainSystemAgent()
+    # 1. Khởi tạo Intent Router (Bộ não điều phối)
+    # Lần đầu tiên chạy sẽ mất khoảng 1-3 giây để load Model SentenceTransformer vào RAM
+    print("[Hệ thống] Đang khởi tạo IntentRouter (tải mô hình ngôn ngữ NLP)...")
+    router = IntentRouter()
     
-    # 2. Initialize and Register Sub-Agents
-    system.register_agent(SubAgent("CodeAgent", "Expert in writing clean, efficient code."))
-    system.register_agent(SubAgent("TestAgent", "Expert in QA and writing unit tests."))
-    system.register_agent(SubAgent("DBAgent", "Database architect and SQL expert."))
-    system.register_agent(SubAgent("DesignAgent", "UI/UX designer."))
-    system.register_agent(SubAgent("GeneralAgent", "Handles general inquiries and summarization."))
+    print("\nHệ thống đã sẵn sàng! Gõ 'exit' để thoát.")
     
-    print("\nSystem ready! Try entering prompts like: 'Write a program and test it'")
+    # Dummy user_id cho quá trình test
+    test_user_id = uuid.uuid4()
     
     while True:
-        # 3. Take User Input
-        print("-" * 50)
-        prompt = input("Enter your prompt (or 'exit' to quit): ")
-        if prompt.strip().lower() == 'exit':
-            print("Shutting down the agent system. Goodbye!")
+        print("\n" + "="*60)
+        user_message = input("Nhập tin nhắn của bạn: ")
+        
+        if user_message.strip().lower() == 'exit':
+            print("Đang đóng hệ thống. Tạm biệt!")
             break
             
-        if not prompt.strip():
+        if not user_message.strip():
             continue
             
-        # 4. Main System Processes and Delegates
-        await system.analyze_and_delegate(prompt)
+        # 2. Router phân tích Intent dựa trên model ngữ nghĩa
+        intent = router.classify_intent(user_message, threshold=0.4)
+        print(f"\n[Router] Phân tích intent: '{intent}'")
+        
+        # 3. Nạp cấu hình Agent (Mô phỏng lấy từ Database theo Intent)
+        agent_role = "Trợ lý ảo tổng hợp"
+        context_strat = "general"
+        if intent == "academic":
+            agent_role = "Chuyên gia học thuật, giúp giải bài tập và định hướng lộ trình học"
+            context_strat = "academic"
+        elif intent == "psychology":
+            agent_role = "Chuyên gia tư vấn tâm lý học đường, an ủi và động viên người dùng"
+            context_strat = "mental_health"
+        elif intent == "schedule":
+            agent_role = "Chuyên gia quản lý thời gian, giúp lên lịch trình hiệu quả"
+            context_strat = "general"
+            
+        config = AgentConfig(
+            id=uuid.uuid4(),
+            agent_type=intent,
+            name=f"{intent.capitalize()}Agent",
+            system_prompt=f"Bạn là {agent_role}. Hãy trả lời ngắn gọn, thân thiện bằng tiếng Việt.",
+            model_name="ggml-org/gemma-4-e4b-it-GGUF:Q4_0", # Tự động kích hoạt RemoteAPIProvider
+            context_strategy=context_strat,
+            allowed_tools=[],
+        )
+        
+        # 4. Khởi chạy Runtime (Core Execution Engine của luồng code thực)
+        print(f"[{config.name}] Đang xử lý...\n")
+        
+        runtime = AgentRuntime(db=MockDB(), config=config, user_id=test_user_id)
+        
+        print(f"[{config.name}] Phản hồi: ", end="", flush=True)
+        
+        # 5. Gọi AI và in kết quả Streaming
+        try:
+            async for chunk_text in runtime.execute_chat(user_message, session_id="test_session"):
+                print(chunk_text, end="", flush=True)
+        except Exception as e:
+            print(f"\n[Lỗi Runtime]: {e}")
+            
+        print("\n" + "-"*50)
 
 if __name__ == "__main__":
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nSystem shut down by user.")
+        print("\nĐã hủy hệ thống bằng phím tắt.")

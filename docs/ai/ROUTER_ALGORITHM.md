@@ -6,7 +6,7 @@ Tài liệu này giải thích chi tiết về mặt toán học và cơ chế h
 
 ## 1. Thuật toán cốt lõi: Vector Embeddings & Cosine Similarity
 
-Thay vì bắt máy tính phải "hiểu" ngữ nghĩa bằng quy tắc ngữ pháp phức tạp hoặc bằng Heuristic/Keyword Match (dễ sai sót), thuật toán này chuyển đổi ngôn ngữ con người thành **Không gian Toán học đa chiều**.
+Thay vì bắt máy tính phải "hiểu" ngữ nghĩa bằng quy tắc ngữ pháp phức tạp hoặc bằng Heuristic/Keyword Match (dễ sai sót), thuật toán này chuyển đổi ngôn ngữ con người thành **Không gian Toán học đa chiều**.https://docs.google.com/spreadsheets/d/1Qt1hapk9emsJdzYrRnJmDIl8tfy1vrefBWuziEiIWzM/edit?gid=0#gid=0
 
 ### A. Mô hình Embedding (Trọng số)
 - **Model sử dụng:** `paraphrase-multilingual-MiniLM-L12-v2`
