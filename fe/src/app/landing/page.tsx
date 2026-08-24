@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrustStrip from './components/TrustStrip';
 import Features from './components/Features';
+import ArchitectureAnimation from './components/ArchitectureAnimation';
 
 export default function LandingPage() {
   return (
@@ -14,6 +15,7 @@ export default function LandingPage() {
         <Hero />
         <TrustStrip />
         <Features />
+        <ArchitectureAnimation />
       </main>
     </div>
   );
