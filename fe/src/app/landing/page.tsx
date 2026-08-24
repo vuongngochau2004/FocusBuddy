@@ -8,6 +8,7 @@ import Features from './components/Features';
 import ArchitectureAnimation from './components/ArchitectureAnimation';
 import InteractiveAgents from './components/InteractiveAgents';
 import Personalization from './components/Personalization';
+import WorkflowOCR from './components/WorkflowOCR';
 
 export default function LandingPage() {
   return (
@@ -20,6 +21,7 @@ export default function LandingPage() {
         <ArchitectureAnimation />
         <InteractiveAgents />
         <Personalization />
+        <WorkflowOCR />
       </main>
     </div>
   );
