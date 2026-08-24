@@ -11,6 +11,8 @@ import Personalization from './components/Personalization';
 import WorkflowOCR from './components/WorkflowOCR';
 import StreamingDemo from './components/StreamingDemo';
 import FAQ from './components/FAQ';
+import FinalCTA from './components/FinalCTA';
+import Footer from './components/Footer';
 
 export default function LandingPage() {
   return (
@@ -26,7 +28,9 @@ export default function LandingPage() {
         <WorkflowOCR />
         <StreamingDemo />
         <FAQ />
+        <FinalCTA />
       </main>
+      <Footer />
     </div>
   );
 }
