@@ -4,6 +4,7 @@ import React from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import TrustStrip from './components/TrustStrip';
+import Features from './components/Features';
 
 export default function LandingPage() {
   return (
@@ -12,6 +13,7 @@ export default function LandingPage() {
       <main className="relative">
         <Hero />
         <TrustStrip />
+        <Features />
       </main>
     </div>
   );
