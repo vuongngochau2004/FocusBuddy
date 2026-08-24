@@ -2,13 +2,16 @@
 
 import React from 'react';
 import Navbar from './components/Navbar';
+import Hero from './components/Hero';
+import TrustStrip from './components/TrustStrip';
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#f8f7ff] text-slate-900 overflow-x-hidden font-sans">
       <Navbar />
       <main className="relative">
-        <div className="py-20 text-center">FocusBuddy Landing Page Shell</div>
+        <Hero />
+        <TrustStrip />
       </main>
     </div>
   );
