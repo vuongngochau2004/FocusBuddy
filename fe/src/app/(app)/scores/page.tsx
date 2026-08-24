@@ -78,6 +78,14 @@ export default function ScoresPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // New Academic Term States
+  const [isNewTermOpen, setIsNewTermOpen] = useState(false);
+  const [newTermData, setNewTermData] = useState({
+    display_name: '',
+    academic_year: '',
+    semester_type: 'REGULAR' as 'REGULAR' | 'SUMMER',
+  });
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -269,7 +277,7 @@ export default function ScoresPage() {
             course_code: row.courseCode.toUpperCase(),
             course_name: row.courseName,
             credits: row.credits,
-            course_type: 'REQUIRED',
+            course_type: 'COMPULSORY',
           });
           courseId = newCourseRes.data.id;
         }
@@ -308,6 +316,39 @@ export default function ScoresPage() {
       showToast('error', typeof detail === 'string' ? detail : 'Trùng môn học hoặc học kỳ đã nhập điểm trước đó.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleCreateNewTerm = async () => {
+    if (!newTermData.display_name || !newTermData.academic_year) {
+      showToast('error', 'Vui lòng điền đầy đủ tên học kỳ và năm học!');
+      return;
+    }
+    try {
+      const res = await academicTermService.create({
+        display_name: newTermData.display_name,
+        academic_year: newTermData.academic_year,
+        semester_type: newTermData.semester_type,
+      });
+      showToast('success', 'Thêm học kỳ mới thành công!');
+      setIsNewTermOpen(false);
+      setNewTermData({
+        display_name: '',
+        academic_year: '',
+        semester_type: 'REGULAR',
+      });
+      // Tải lại danh sách học kỳ
+      const termsRes = await academicTermService.getAll(0, 100);
+      const termsList = termsRes.data.items || [];
+      setDbTerms(termsList);
+      // Tự động chọn học kỳ mới
+      if (res.data && res.data.id) {
+        setSelectedTermId(res.data.id);
+      }
+    } catch (err: any) {
+      console.error('Failed to create academic term:', err);
+      const detail = err?.response?.data?.detail;
+      showToast('error', typeof detail === 'string' ? detail : 'Không thể tạo học kỳ mới.');
     }
   };
 
@@ -523,19 +564,89 @@ export default function ScoresPage() {
               </div>
 
               {/* Term Selection */}
-              <div className="py-4 flex flex-col sm:flex-row sm:items-center gap-2">
-                <label className="text-sm font-semibold text-slate-700 dark:text-white/70">Chọn Học Kỳ:</label>
-                <select
-                  value={selectedTermId}
-                  onChange={(e) => setSelectedTermId(e.target.value)}
-                  className="glass-input !py-1.5 !px-3 !w-auto text-sm"
-                >
-                  {dbTerms.map((term) => (
-                    <option key={term.id} value={term.id} className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-white">
-                      {term.display_name}
-                    </option>
-                  ))}
-                </select>
+              <div className="py-4 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="text-sm font-semibold text-slate-700 dark:text-white/70">Chọn Học Kỳ:</label>
+                  <select
+                    value={selectedTermId}
+                    onChange={(e) => setSelectedTermId(e.target.value)}
+                    className="glass-input !py-1.5 !px-3 !w-auto text-sm"
+                  >
+                    {dbTerms.map((term) => (
+                      <option key={term.id} value={term.id} className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-white">
+                        {term.display_name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setIsNewTermOpen(!isNewTermOpen)}
+                    className="glass-btn flex items-center gap-1.5 text-xs !py-1.5 !px-3"
+                  >
+                    <Plus size={14} />
+                    {isNewTermOpen ? 'Đóng form' : 'Thêm học kỳ'}
+                  </button>
+                </div>
+
+                {isNewTermOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="glass p-4 rounded-xl space-y-3 border border-slate-200/40 dark:border-white/5"
+                  >
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-white">Tạo học kỳ mới</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-slate-500 dark:text-white/40">Tên học kỳ</label>
+                        <input
+                          type="text"
+                          value={newTermData.display_name}
+                          onChange={(e) => setNewTermData({ ...newTermData, display_name: e.target.value })}
+                          className="glass-input !py-1 !px-2.5 text-xs w-full"
+                          placeholder="Ví dụ: Học kỳ 3"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-slate-500 dark:text-white/40">Năm học</label>
+                        <input
+                          type="text"
+                          value={newTermData.academic_year}
+                          onChange={(e) => setNewTermData({ ...newTermData, academic_year: e.target.value })}
+                          className="glass-input !py-1 !px-2.5 text-xs w-full"
+                          placeholder="Ví dụ: 2024-2025"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-slate-500 dark:text-white/40">Loại học kỳ</label>
+                        <select
+                          value={newTermData.semester_type}
+                          onChange={(e) => setNewTermData({ ...newTermData, semester_type: e.target.value as any })}
+                          className="glass-input !py-1 !px-2.5 text-xs w-full"
+                        >
+                          <option value="REGULAR" className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-white">Chính khóa (REGULAR)</option>
+                          <option value="SUMMER" className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-white">Học kỳ hè (SUMMER)</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setIsNewTermOpen(false)}
+                        className="glass-btn !py-1 !px-3 text-xs"
+                      >
+                        Hủy
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCreateNewTerm}
+                        className="glass-btn-primary !py-1 !px-3 text-xs"
+                      >
+                        Lưu học kỳ
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
               </div>
 
               {/* Excel-like Table Grid */}

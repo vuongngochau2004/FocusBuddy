@@ -3,8 +3,11 @@ import {
   User,
   UserCreate,
   UserListResponse,
+  AcademicTerm,
   AcademicTermListResponse,
+  Course,
   CourseListResponse,
+  AcademicStatistic,
   StudyTask,
   StudyTaskCreate,
   StudyTaskListResponse,
@@ -13,7 +16,9 @@ import {
   LearningGoal,
   LearningGoalListResponse,
   EmotionLog,
+  EmotionLogListResponse,
   MentalAssessment,
+  MentalAssessmentListResponse,
   ChatSession,
   ChatMessage,
   ChatMessageCreate,
@@ -43,6 +48,9 @@ export const userService = {
 export const academicTermService = {
   getAll: (skip = 0, limit = 100) =>
     api.get<AcademicTermListResponse>('/v1/academic-terms', { params: { skip, limit } }),
+
+  create: (data: any) =>
+    api.post<AcademicTerm>('/v1/academic-terms', data),
 };
 
 // ===== COURSE SERVICE =====
@@ -92,7 +100,7 @@ export const learningGoalService = {
 // ===== EMOTION LOG SERVICE =====
 export const emotionLogService = {
   getAll: (skip = 0, limit = 100) =>
-    api.get<EmotionLog[]>('/v1/emotions', { params: { skip, limit } }),
+    api.get<EmotionLogListResponse>('/v1/emotions', { params: { skip, limit } }),
 
   create: (data: Partial<EmotionLog>) =>
     api.post<EmotionLog>('/v1/emotions', data),
@@ -101,7 +109,7 @@ export const emotionLogService = {
 // ===== MENTAL ASSESSMENT SERVICE =====
 export const mentalAssessmentService = {
   getAll: (skip = 0, limit = 100) =>
-    api.get<MentalAssessment[]>('/v1/assessments', { params: { skip, limit } }),
+    api.get<MentalAssessmentListResponse>('/v1/assessments', { params: { skip, limit } }),
 };
 
 // ===== CHAT SERVICE =====
@@ -117,6 +125,28 @@ export const chatService = {
 
   sendMessage: (sessionId: string, data: ChatMessageCreate) =>
     api.post<ChatMessage>(`/v1/chat/sessions/${sessionId}/messages`, data),
+
+  sendMessageStream: async function* (sessionId: string, data: ChatMessageCreate) {
+    const userId = localStorage.getItem('focusbuddy_user_id');
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8018/api';
+    const response = await fetch(`${baseUrl}/v1/chat/sessions/${sessionId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': userId || '',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.body) throw new Error('No response body');
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      yield decoder.decode(value, { stream: true });
+    }
+  },
 };
 
 // ===== GRADE SERVICE =====

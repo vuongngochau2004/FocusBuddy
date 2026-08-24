@@ -55,7 +55,7 @@ export default function DashboardPage() {
   const [apiStatus, setApiStatus] = useState<'loading' | 'ok' | 'error'>('loading');
   const [recentTasks, setRecentTasks] = useState<StudyTask[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
-  
+
   // Real stats state
   const [stats, setStats] = useState({
     studyHours: '0.0h',
@@ -92,13 +92,13 @@ export default function DashboardPage() {
       // 2. Load learning goals count
       const goalsRes = await learningGoalService.getAll();
       const allGoals = goalsRes.data.items || [];
-      const completedG = allGoals.filter((g) => g.status === 'COMPLETED').length;
+      const completedG = allGoals.filter((g) => g.status === 'COMPLETED' || g.status === 'ACHIEVED').length;
       const totalG = allGoals.length;
 
       // 3. Load study sessions to calculate hours & streak
       const sessionsRes = await studySessionService.getAll();
       const allSessions = sessionsRes.data.items || [];
-      
+
       // Tính giờ học hôm nay
       const todayStr = new Date().toDateString();
       const todayMinutes = allSessions
@@ -112,9 +112,9 @@ export default function DashboardPage() {
           allSessions.map((s) => new Date(s.start_time).toDateString())
         )
       ).map((d) => new Date(d).getTime());
-      
+
       uniqueDays.sort((a, b) => b - a); // Sắp xếp ngày mới nhất lên đầu
-      
+
       let streakCount = 0;
       let checkDate = new Date();
       checkDate.setHours(0, 0, 0, 0);
@@ -128,7 +128,7 @@ export default function DashboardPage() {
       if (hasSessionToday || hasSessionYesterday) {
         let currentCheck = hasSessionToday ? new Date() : yesterday;
         currentCheck.setHours(0, 0, 0, 0);
-        
+
         while (true) {
           const hasDay = uniqueDays.some((time) => new Date(time).getTime() === currentCheck.getTime());
           if (hasDay) {
@@ -207,14 +207,12 @@ export default function DashboardPage() {
       {apiStatus !== 'loading' && (
         <motion.div
           variants={item}
-          className={`glass-subtle px-4 py-2.5 flex items-center gap-2 text-sm ${
-            apiStatus === 'ok' ? 'text-green-500' : 'text-red-500'
-          }`}
+          className={`glass-subtle px-4 py-2.5 flex items-center gap-2 text-sm ${apiStatus === 'ok' ? 'text-green-500' : 'text-red-500'
+            }`}
         >
           <div
-            className={`w-2 h-2 rounded-full ${
-              apiStatus === 'ok' ? 'bg-green-500' : 'bg-red-500'
-            } animate-pulse`}
+            className={`w-2 h-2 rounded-full ${apiStatus === 'ok' ? 'bg-green-500' : 'bg-red-500'
+              } animate-pulse`}
           />
           {apiStatus === 'ok'
             ? 'Backend API đang hoạt động bình thường'
@@ -325,22 +323,25 @@ export default function DashboardPage() {
               <span className="font-medium text-slate-700 dark:text-white/80 text-sm">Bắt đầu phiên học</span>
             </div>
             <p className="text-xs text-slate-500 dark:text-white/35">
-              Khởi động đồng hồ Pomodoro và theo dõi thời gian tập trung.
+              Đang cập nhật
+              {/* Khởi động đồng hồ Pomodoro và theo dõi thời gian tập trung. */}
             </p>
           </motion.div>
 
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="p-4 rounded-xl bg-gradient-to-r from-pink-500/10 to-pink-600/5 border border-pink-500/15 hover:border-pink-500/30 transition-all cursor-pointer"
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <Target size={18} className="text-pink-500" />
-              <span className="font-medium text-slate-700 dark:text-white/80 text-sm">Thêm mục tiêu mới</span>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-white/35">
-              Đặt mục tiêu học tập cho tuần này và theo dõi tiến độ.
-            </p>
-          </motion.div>
+          <Link href="/goals" className="block">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="p-4 rounded-xl bg-gradient-to-r from-pink-500/10 to-pink-600/5 border border-pink-500/15 hover:border-pink-500/30 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <Target size={18} className="text-pink-500" />
+                <span className="font-medium text-slate-700 dark:text-white/80 text-sm">Thêm mục tiêu mới</span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-white/35">
+                Đặt mục tiêu học tập cho tuần này và theo dõi tiến độ.
+              </p>
+            </motion.div>
+          </Link>
 
           {/* Motivation Quote */}
           <div className="p-4 rounded-xl border border-dashed border-slate-300 dark:border-white/10 text-center mt-4">

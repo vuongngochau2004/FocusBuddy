@@ -1,82 +1,92 @@
 import logging
 from typing import Optional
-from sentence_transformers import SentenceTransformer, util
-from sqlalchemy.orm import Session
-
-from app.models.module_5_ai_chatbot.intent_config import IntentConfig
+from app.services.module_5_ai_chatbot.ai.registry import AgentRegistry
 
 logger = logging.getLogger(__name__)
 
+from dataclasses import dataclass
+from typing import List
+
+@dataclass
+class DummyConfig:
+    agent_type: str
+    example_phrases: List[str]
+    threshold: float
+
 class Supervisor:
     """
-    Supervisor / Intent Router for Agent System V2.
-    Classifies user intent using NLP Embeddings and routes to the correct agent_type.
+    Supervisor Agent responsible for Initial Intent Classification.
+    Determines which specialized agent should handle the request.
     """
     _instance = None
-    _model = None
-    _intent_configs = []
-    _intent_embeddings = []
 
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(Supervisor, cls).__new__(cls)
+            cls._instance._initialized = False # type: ignore
         return cls._instance
 
-    def initialize(self, db: Session):
-        """
-        Loads the embedding model and caches the intent vectors from the DB.
-        Should be called at application startup.
-        """
-        if self._model is None:
-            logger.info("Loading Supervisor Embedding Model...")
-            # Using a lightweight multilingual model
-            self._model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+    def __init__(self):
+        if getattr(self, "_initialized", False):
+            return
         
-        logger.info("Loading Intent Configs from Database...")
-        # Fetch active intent configs
-        configs = db.query(IntentConfig).filter(IntentConfig.is_active == True).all()
+        # We get the intent configs from the YAML registry now
+        registry = AgentRegistry()
+        intents_list = registry.get_all_intents()
         
         self._intent_configs = []
-        self._intent_embeddings = []
-        
-        for config in configs:
-            if config.example_phrases:
-                # Embed all phrases for this intent
-                embeddings = self._model.encode(config.example_phrases, convert_to_tensor=True)
-                self._intent_configs.append(config)
-                self._intent_embeddings.append(embeddings)
-        
+        for i_dict in intents_list:
+            c = DummyConfig(
+                agent_type=i_dict["agent_type"],
+                example_phrases=i_dict["example_phrases"],
+                threshold=i_dict.get("threshold", 0.45)
+            )
+            self._intent_configs.append(c)
+            
+        self._initialized = True # type: ignore
         logger.info(f"Supervisor initialized with {len(self._intent_configs)} intents.")
 
-    def classify_intent(self, user_message: str) -> str:
+    async def classify_intent(self, user_message: str, history: str = "") -> List[str]:
         """
-        Calculates cosine similarity and returns the agent_type.
-        Falls back to 'general' if threshold is not met.
+        Classifies intent using an LLM, taking recent chat history into account.
+        Returns a list of intents (e.g. ["academic", "mental"]).
+        Falls back to ['general'] if no match is found or an error occurs.
         """
-        if not self._model or not self._intent_configs:
-            logger.warning("Supervisor not fully initialized. Falling back to 'general'.")
-            return "general"
+        if not self._intent_configs:
+            logger.warning("Supervisor not fully initialized or no configs. Falling back to ['general'].")
+            return ["general"]
 
-        user_embedding = self._model.encode(user_message, convert_to_tensor=True)
-        
-        best_intent = "general"
-        highest_score = -1.0
-        best_threshold = 0.45
-        
-        for config, embeddings in zip(self._intent_configs, self._intent_embeddings):
-            # Calculate similarity against all phrases of this intent
-            cosine_scores = util.cos_sim(user_embedding, embeddings)
-            max_score_for_intent = cosine_scores.max().item()
+        try:
+            from app.services.module_5_ai_chatbot.ai.provider import ProviderFactory
+            from app.core.config import settings
             
-            if max_score_for_intent > highest_score:
-                highest_score = max_score_for_intent
-                best_intent = config.agent_type
-                best_threshold = config.threshold
+            provider = ProviderFactory.get_provider_for_model(settings.LLM_MODEL)
+            
+            intent_descriptions = "\n".join([f"- {c.agent_type}: {', '.join(c.example_phrases) if c.example_phrases else ''}" for c in self._intent_configs])
+            
+            system_prompt = f"""
+You are an intent classification system. Analyze the user's message and the recent chat history to select the most appropriate intent(s) from the list below.
+If the user's message contains multiple distinct topics (e.g., grades and mental health), you can return multiple intents.
+If it is just one topic, return a single intent in the array.
+
+Chat History:
+{history}
+
+Available intents:
+{intent_descriptions}
+
+Return ONLY a JSON object in this format: {{"intents": ["intent_name_1", "intent_name_2"]}}
+If no intent perfectly matches, return {{"intents": ["general"]}}
+            """
+            
+            result = await provider.generate_structured_analysis(system_prompt, user_message)
+            intents = result.get("intents", ["general"])
+            
+            # Sanity check output
+            if not isinstance(intents, list) or len(intents) == 0:
+                return ["general"]
                 
-        logger.info(f"Supervisor classification: highest_score={highest_score:.4f}, threshold={best_threshold}")
-        
-        if highest_score < best_threshold:
-            logger.info(f"Score {highest_score:.4f} is below threshold {best_threshold}. Fallback to 'general'.")
-            return "general"
-            
-        return best_intent
+            return intents
+        except Exception as e:
+            logger.error(f"Error during LLM intent classification: {e}")
+            return ["general"]

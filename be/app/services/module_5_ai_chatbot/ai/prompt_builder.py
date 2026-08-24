@@ -1,5 +1,5 @@
 from typing import List, Dict, Any
-from app.models.module_5_ai_chatbot.agent_config import AgentConfig
+from app.schemas.module_5_ai_chatbot.agent_config_schema import AgentConfigYaml
 
 class PromptBuilder:
     """
@@ -9,7 +9,7 @@ class PromptBuilder:
     
     @staticmethod
     def build_messages(
-        config: AgentConfig,
+        config: AgentConfigYaml,
         context: str,
         history: List[Dict[str, str]],
         user_message: str

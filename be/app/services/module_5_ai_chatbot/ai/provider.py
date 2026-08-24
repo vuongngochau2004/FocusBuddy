@@ -5,6 +5,8 @@ from typing import AsyncGenerator, List, Dict, Any, Optional
 from pydantic import BaseModel
 from app.core.config import settings
 from app.models.module_6_ai_analysis.ai_analysis_report import OverallStatus
+from app.schemas.module_5_ai_chatbot.agent_config_schema import AgentConfigYaml
+from app.services.module_5_ai_chatbot.ai.tools.registry import ToolRegistry
 
 # --- Internal Response Abstractions ---
 
@@ -32,7 +34,8 @@ class LLMProvider(ABC):
         model_name: Optional[str] = None,
         tools: Optional[List[Dict[str, Any]]] = None
     ) -> AsyncGenerator[ChatResponseChunk, None]:
-        pass
+        if False:
+            yield ChatResponseChunk(content="")
 
     @abstractmethod
     async def generate_structured_analysis(self, prompt: str, context: str) -> dict:
@@ -113,7 +116,7 @@ class OllamaProvider(LLMProvider):
                         try:
                             json_data = json.loads(line)
                             message = json_data.get("message", {})
-                            content = message.get("content", "")
+                            content = message.get("content") or ""
                             
                             tool_calls_raw = message.get("tool_calls", [])
                             parsed_tool_calls = None
@@ -218,7 +221,7 @@ class RemoteAPIProvider(LLMProvider):
                                 json_data = json.loads(data)
                                 if "choices" in json_data and len(json_data["choices"]) > 0:
                                     delta = json_data["choices"][0].get("delta", {})
-                                    content = delta.get("content", "")
+                                    content = delta.get("content") or ""
                                     
                                     # Remote API tool call parsing (OpenAI format)
                                     parsed_tool_calls = None

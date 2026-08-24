@@ -20,5 +20,6 @@ dependencies = [
     "httpx",
     "redis",
     "celery",
-    "sentence-transformers",
+    "pyyaml>=6.0.3",
+    "loguru",
 ]
