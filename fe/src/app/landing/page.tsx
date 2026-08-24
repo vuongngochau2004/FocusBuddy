@@ -7,6 +7,7 @@ import TrustStrip from './components/TrustStrip';
 import Features from './components/Features';
 import ArchitectureAnimation from './components/ArchitectureAnimation';
 import InteractiveAgents from './components/InteractiveAgents';
+import Personalization from './components/Personalization';
 
 export default function LandingPage() {
   return (
@@ -18,6 +19,7 @@ export default function LandingPage() {
         <Features />
         <ArchitectureAnimation />
         <InteractiveAgents />
+        <Personalization />
       </main>
     </div>
   );
