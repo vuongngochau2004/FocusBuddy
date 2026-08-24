@@ -1,108 +1,169 @@
 # Kiến Trúc Khuôn Mặt Robot (Robot Face Architecture)
 
-Tài liệu này mô tả kiến trúc nền tảng và đặc tả kỹ thuật cho hệ thống hiển thị biểu cảm khuôn mặt của robot trợ lý học tập **FocusBuddy**.
+Tài liệu này mô tả kiến trúc nền tảng và đặc tả kỹ thuật cho hệ thống hiển thị và điều phối biểu cảm khuôn mặt của robot trợ lý học tập **FocusBuddy**.
 
 ---
 
 ## 1. Mục Tiêu của Robot Face
 
 Khuôn mặt robot đóng vai trò là giao diện trực quan cảm xúc (visual emotional interface) giữa FocusBuddy và người học. Robot Face giúp:
-* Biểu đạt trực quan trạng thái của robot (sẵn sàng, vui vẻ khi hoàn thành nhiệm vụ, lo lắng khi mất tập trung, suy nghĩ khi xử lý thông tin).
+* Biểu đạt trực quan trạng thái và cảm xúc của robot một cách sống động, tinh tế qua 8 biểu cảm vector chuyên biệt và hệ thống hiệu ứng phân tầng.
 * Tăng tính tương tác sinh động, tạo sự đồng cảm và nâng cao động lực học tập cho người dùng.
 * Hoạt động mượt mà trên cả giao diện Web máy tính và màn hình nhúng (Raspberry Pi/màn hình nhỏ) với độ trễ thấp và tài nguyên tối thiểu.
 
 ---
 
-## 2. Lý Do Chọn SVG (Scalable Vector Graphics)
+## 2. Mô Hình Phân Lớp Kiến Trúc 3 Tầng (3-Tier Architecture)
 
-Thay vì sử dụng Canvas 2D, Three.js (3D nặng nề), Lottie hay ảnh động GIF/Video, FocusBuddy chọn **SVG thuần kết hợp React**:
+Hệ thống biểu cảm khuôn mặt robot được phân tách nghiêm ngặt thành 3 tầng độc lập:
 
-1. **Độ sắc nét tuyệt đối (Resolution Independence):** SVG là đồ họa vector, cho phép co giãn tự do theo kích thước màn hình bất kỳ (từ màn hình nhỏ trên mạch nhúng đến màn hình Retina độ phân giải cao) mà không bị vỡ hạt hay mờ nét.
-2. **Hiệu năng & Tài nguyên nhẹ:** DOM SVG cực kỳ nhẹ, không yêu cầu GPU chuyên dụng như WebGL/Three.js, phù hợp cho các thiết bị phần cứng giới hạn như Raspberry Pi.
-3. **Khả năng kiểm soát hình học (Declarative Parametric Control):** Từng điểm điều khiển (control point), độ mở mắt, độ cong miệng, góc xoay lông mày được tham số hóa thành các giá trị số học (`FaceParameters`), cho phép can thiệp và nội suy toán học chính xác mà không phụ thuộc vào chuỗi khung hình cố định.
-4. **Khả năng animate linh hoạt ở các giai đoạn sau:** Từng bộ phận được phân nhóm trong các thẻ `<g>` độc lập, sẵn sàng để tích hợp hiệu ứng chuyển động mượt mà ở FACE-02.
-5. **Tiêu chuẩn Accessibility & Thân thiện với React:** Dễ dàng khai báo thuộc tính `role="img"`, `aria-label` và quản lý trạng thái qua React Props tiêu chuẩn.
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. TẦNG SỰ KIỆN NGỮ NGHĨA (Semantic Event Layer - FACE-06 & FACE-07)        │
+│ - useRobotFaceEventBridge (Custom Hook)                                     │
+│ - Operational State: idle, listening, thinking, speaking                    │
+│ - Transient Emotion (7): neutral, happy, encouraging, concerned, excited,   │
+│                          sleepy, surprised                                  │
+│ - Visual Mapper (mapEmotionToVisual): phân giải cả expression & effects     │
+│ - Baseline Restoration Invariant: tự động phục hồi baseline (effects: [])   │
+│ - Runtime Validator & Bounded Deduplication Registry (100 events)           │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+                                       │ Dispatch RobotFaceCommand (expression, effects, intensity, ...)
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. TẦNG ĐIỀU PHỐI (Controller / State Machine Layer - FACE-05 & FACE-07)    │
+│ - useRobotFaceController (Custom Hook) & Pure Reducer                       │
+│ - Command-Coupled Effects: effect đi cùng active command, tự động đồng bộ   │
+│ - Priority rules (Latest-Wins cho cùng priority, ngắt quãng cho cao hơn)    │
+│ - Queue FIFO (Tối đa 20 commands, Overflow Eviction)                        │
+│ - Timer lifecycle cô lập & Synchronous stateRef admission                  │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+                                       │ Cung cấp: { expression, intensity, effects }
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. TẦNG TRÌNH DIỄN (Presentation Layer - FACE-01 đến FACE-04 & FACE-07)     │
+│ - <RobotFace expression={...} intensity={...} effects={...} ... />          │
+│ - 8 Expression Presets: idle, happy, concerned, thinking, encouraging,      │
+│                         excited, sleepy, surprised                          │
+│ - 11 Tham số hình học FaceParameters (bổ sung mouthWidth: 14..36px)         │
+│ - Smooth Tween Transition (0.32s) & Unified Continuous Mouth (M Q Q Z)      │
+│ - Auto Blink đa profile: 'default' (180ms) và 'sleepy' (280ms)              │
+│ - Ambient Micro-motion nhịp thở (4.0s, chỉ active khi idle)                 │
+│ - Phân tầng Visual Effects: <RobotFaceEffects layer="background"|"foreground"│
+│   (blush halo, stars lấp lánh, zzz bồng bềnh, sweat trên thái dương)        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## 3. Cấu Trúc Thư Mục & File
 
-Cấu trúc module được tổ chức chuẩn theo Feature-based architecture trong Next.js:
+Module được tổ chức chuẩn theo Feature-based architecture trong Next.js:
 
 ```text
 fe/
 ├── src/
 │   ├── features/
 │   │   └── robot-face/
-│   │       ├── components/
-│   │       │   └── RobotFace.tsx         # SVG Renderer hiển thị khuôn mặt
-│   │       ├── expression-presets.ts     # Dữ liệu preset biểu cảm & hàm nội suy lerp
-│   │       ├── robot-face.types.ts       # TypeScript definitions (Types & Interfaces)
-│   │       └── index.ts                  # Barrel export
+│   │       ├── events/                              # TẦNG SỰ KIỆN NGỮ NGHĨA (FACE-06, FACE-07)
+│   │       │   ├── robot-face-event.types.ts        # Semantic types (7 emotions), Baseline, Results
+│   │       │   ├── robot-face-event.validation.ts   # Runtime validator nhận unknown (7 emotions)
+│   │       │   ├── robot-face-event.mapper.ts       # Pure mapper (mapEmotionToVisual -> { expression, effects })
+│   │       │   └── useRobotFaceEventBridge.ts       # Bridge Hook quản lý baseline invariant & clean effects
+│   │       ├── controller/                          # TẦNG ĐIỀU PHỐI / STATE MACHINE (FACE-05, FACE-07)
+│   │       │   ├── robot-face-controller.types.ts   # Command types kèm effects, Priority, State
+│   │       │   ├── robot-face-controller.reducer.ts # Pure Reducer không side-effect (FIFO & Eviction)
+│   │       │   └── useRobotFaceController.ts        # Hook quản lý timer lifecycle & activeEffects
+│   │       ├── components/                          # TẦNG TRÌNH DIỄN (FACE-01 đến FACE-04, FACE-07)
+│   │       │   ├── RobotFace.tsx                    # SVG Presentation Component chính
+│   │       │   └── RobotFaceEffects.tsx             # Component render vector SVG cho visual effects
+│   │       ├── hooks/
+│   │       │   ├── useAnimatedFaceParameters.ts     # Hook quản lý 11 MotionValues & Derived Transforms
+│   │       │   ├── useAutoBlink.ts                  # Hook Auto Blink đa profile ('default' | 'sleepy')
+│   │       │   └── useAmbientFaceMotion.ts          # Hook vi chuyển động thở Ambient Breathing Motion
+│   │       ├── blink-utils.ts                       # Utility timing constants & BLINK_PROFILES
+│   │       ├── expression-presets.ts                # Dữ liệu 8 preset biểu cảm & hàm nội suy lerp
+│   │       ├── robot-face.types.ts                  # TypeScript definitions (8 expressions, 4 effects)
+│   │       └── index.ts                             # Public Barrel export
 │   └── app/
 │       └── robot-face-lab/
-│           └── page.tsx                  # Màn hình kiểm thử/preview biểu cảm độc lập
+│           └── page.tsx                             # Màn hình kiểm thử toàn diện 3 chế độ (Lab Tester)
 └── docs/
-    └── ROBOT_FACE_ARCHITECTURE.md        # Tài liệu kiến trúc này
+    ├── ROBOT_FACE_ARCHITECTURE.md                   # Tài liệu kiến trúc này
+    ├── FACE_02_IMPLEMENTATION_PLAN.md               # Kế hoạch triển khai FACE-02
+    ├── TASK_FACE_02_STATUS_REPORT.md                # Báo cáo tổng kết FACE-02
+    ├── FACE_03_IMPLEMENTATION_PLAN.md               # Kế hoạch triển khai FACE-03
+    ├── TASK_FACE_03_STATUS_REPORT.md                # Báo cáo tổng kết FACE-03
+    ├── FACE_04_IMPLEMENTATION_PLAN.md               # Kế hoạch triển khai FACE-04
+    ├── TASK_FACE_04_STATUS_REPORT.md                # Báo cáo tổng kết FACE-04
+    ├── FACE_05_IMPLEMENTATION_PLAN.md               # Kế hoạch triển khai FACE-05
+    ├── TASK_FACE_05_STATUS_REPORT.md                # Báo cáo tổng kết FACE-05
+    ├── FACE_06_IMPLEMENTATION_PLAN.md               # Kế hoạch triển khai FACE-06
+    ├── TASK_FACE_06_STATUS_REPORT.md                # Báo cáo tổng kết FACE-06
+    ├── FACE_07_IMPLEMENTATION_PLAN.md               # Kế hoạch triển khai FACE-07 (R1)
+    └── TASK_FACE_07_STATUS_REPORT.md                # Báo cáo tổng kết FACE-07
 ```
 
 ---
 
-## 4. Trách Nhiệm Của Từng Thành Phần
+## 4. Danh Sách 8 Biểu Cảm Vector & 7 Cảm Xúc Ngữ Nghĩa
 
-### 4.1 `robot-face.types.ts`
-* Định nghĩa tập hợp các biểu cảm được hỗ trợ qua type `RobotExpression` (`idle`, `happy`, `concerned`, `thinking`).
-* Định nghĩa cấu trúc thông số hình học `FaceParameters` (độ mở mắt, độ cong mí, góc xoay/độ lệch lông mày, độ cong/độ mở miệng, độ hiển thị má hồng, cường độ glow).
-* Định nghĩa props của component `RobotFaceProps` (`expression`, `intensity`, `size`, `className`).
+### 4.1 Bảng 8 Biểu Cảm Vector (`RobotExpression`)
+| Expression | Ý nghĩa trải nghiệm | Mắt | Lông mày | Miệng | Má hồng | Glow |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+| `idle` | Nghỉ ngơi, bình tĩnh | Mở $0.85$ | Ngang $0^\circ$ | Khép $0.08$ | $0.15$ | $0.60$ |
+| `happy` | Vui vẻ, hoàn thành tốt | Cong cười $0.85$ | Nhướng $+12^\circ$ | Cười tươi $0.90$ | $0.85$ | $0.95$ |
+| `concerned` | Lo lắng, mất tập trung | Cụp $-0.35$ | Xụp $-18^\circ$ | Mếu $-0.65$ | $0.05$ | $0.50$ |
+| `thinking` | Đang suy nghĩ, tư duy | Hơi nheo $0.70$ | Lệch $+22^\circ / -10^\circ$ | Lệch nhẹ $-0.20$ | $0.20$ | $0.75$ |
+| `encouraging` | Cổ vũ, động viên ấm áp | Mở cong $0.55$ | Nhướng $+8^\circ$ | Cười nhẹ $0.65$ | $0.60$ | $0.80$ |
+| `excited` | Hào hứng, ăn mừng lớn | Mở to cười $0.90$ | Nhướng cao $+16^\circ$ | Cười lớn $0.95$ | $0.95$ | $1.00$ |
+| `sleepy` | Buồn ngủ, mí mắt nặng | Khép sụp $0.38$ | Thả lỏng $-8^\circ$ | Ngáp nhỏ $-0.10$ | $0.10$ | $0.35$ |
+| `surprised` | Ngạc nhiên, bất ngờ | Tròn to $1.00$ | Nhướng cao $0^\circ$ | Chữ O $-0.25$ | $0.00$ | $0.90$ |
 
-### 4.2 `expression-presets.ts`
-* Lưu trữ trạng thái cơ sở `idleFace` và bảng preset chuẩn `expressionPresets` cho từng biểu cảm dưới dạng dữ liệu tĩnh thuần túy (Data-driven).
-* Cung cấp hàm toán học `lerp(start, end, t)` và hàm `interpolateFaceParameters(base, target, intensity)` để tính toán thông số tức thời giữa trạng thái Idle và biểu cảm mục tiêu dựa trên `intensity` (0..1).
-
-### 4.3 `components/RobotFace.tsx`
-* Nhận props `expression`, `intensity`, `size`, `className`.
-* Thực hiện nội suy thông số hình học.
-* Render toàn bộ cấu trúc SVG theo hệ tọa độ chuẩn `viewBox="0 0 400 240"`.
-* Phân chia các lớp đồ họa rõ ràng theo thứ tự từ dưới lên trên:
-  1. `screen-visor`: Nền kính tối màu bo góc (`rx="36"`).
-  2. `ambient-glow`: Ánh sáng cyan tỏa nhẹ nền.
-  3. `left-eyebrow`: Lông mày bên trái (hỗ trợ góc xoay và độ dịch Y).
-  4. `right-eyebrow`: Lông mày bên phải (hỗ trợ góc xoay đối xứng và độ dịch Y).
-  5. `left-eye`: Mắt trái dạng đường cong tham số SVG Path kèm đốm phản quang.
-  6. `right-eye`: Mắt phải dạng đường cong tham số SVG Path kèm đốm phản quang.
-  7. `mouth`: Khuôn miệng dạng đường cong bậc 2 (khi đóng) hoặc khoang mở (khi mở).
-  8. `left-blush` & `right-blush`: Hai bên má hồng nhẹ nhàng.
-
-### 4.4 `app/robot-face-lab/page.tsx`
-* Màn hình phòng thí nghiệm Client Component (URL: `/robot-face-lab`).
-* Phục vụ kiểm tra trực quan tất cả các biểu cảm, tinh chỉnh slider `intensity` từ `0.0` đến `1.0`, kiểm tra khả năng co giãn kích thước (responsive) mà không cần kết nối backend.
+### 4.2 Bảng Ánh Xạ Semantic Emotion Sang Visual State
+| Semantic Emotion | Expression | Default Effects | Ghi chú vòng đời |
+| :--- | :---: | :---: | :--- |
+| `neutral` | *Current Baseline* | `[]` | Quay về ngay trạng thái vận hành sạch |
+| `happy` | `happy` | `['blush']` | Vui vẻ kèm má hồng phát quang |
+| `encouraging` | `encouraging` | `['blush']` | Nụ cười động viên kèm má hồng ấm áp |
+| `concerned` | `concerned` | `['sweat']` | Lo lắng kèm giọt mồ hôi trên thái dương |
+| `excited` | `excited` | `['stars']` | Phấn khích kèm 4 ngôi sao vàng lấp lánh |
+| `sleepy` | `sleepy` | `['zzz']` | Buồn ngủ kèm 3 ký hiệu Zzz bồng bềnh |
+| `surprised` | `surprised` | `[]` | Mắt tròn xoe, miệng chữ O |
 
 ---
 
-## 5. Danh Sách Biểu Cảm Hiện Tại (Checkpoint FACE-01)
+## 5. Kiến Trúc Visual Effects & Gắn Kết Vòng Đời Command
 
-| Biểu cảm (`RobotExpression`) | Đặc điểm hình học chính | Cảm xúc truyền tải |
-| :--- | :--- | :--- |
-| **`idle`** | Mắt mở tự nhiên (0.85), lông mày ngang (0°), miệng cong nhẹ (0.08), má hồng phớt (0.15). | Bình tĩnh, chú ý lắng nghe, sẵn sàng tiếp nhận thông tin. |
-| **`happy`** | Mắt cong hình vòng cung (0.85), lông mày nhướng (12°), miệng cười mở tươi (0.9 / 0.45), má hồng rõ nét (0.85), glow rực rỡ. | Vui vẻ, tán thưởng, chúc mừng hoàn thành mục tiêu học tập. |
-| **`concerned`** | Mắt cụp nhẹ (-0.35), lông mày dốc cụp vào trong (-18°), khóe miệng trĩu xuống (-0.65), má hồng tắt (0.05). | Lo lắng, nhắc nhở khi học sinh mất tập trung hoặc mệt mỏi. |
-| **`thinking`** | Mắt nheo tập trung (0.7), lông mày bất đối xứng (trái +22°, phải -10°), miệng khép mím nhẹ (-0.2). | Đang suy nghĩ, đang truy vấn cơ sở tri thức hoặc phân tích dữ liệu. |
-
----
-
-## 6. Giới Hạn Của Checkpoint FACE-01
-
-* **Baseline hình học tĩnh:** Checkpoint này tập trung vào thiết lập hệ tọa độ vector chuẩn, cấu trúc layer và thuật toán nội suy tham số.
-* **Chưa có chuyển động (Transition Animation):** Thay đổi giữa các expression và intensity diễn ra tức thời qua state re-render, chưa áp dụng chuyển động easing/spring mượt mà.
-* **Chưa có vòng lặp chớp mắt tự động (Auto Blink):** Mắt giữ nguyên độ mở theo preset/intensity.
-* **Chưa tích hợp WebSocket/Backend API:** Chưa kết nối với dịch vụ phân tích cảm xúc hay mô hình AI của FocusBuddy.
-* **Chưa tích hợp phần cứng Raspberry Pi:** Chưa đóng gói dạng stand-alone kiosk view cho màn hình nhúng.
+* **Gắn kết trực tiếp vào Command:** `RobotFaceCommand` lưu trữ trường `effects: readonly RobotFaceEffect[]`.
+* **Đồng bộ vòng đời tự nhiên:**
+  * Khi emotion kích hoạt $\rightarrow$ active command mang effects tương ứng $\rightarrow$ UI hiển thị effect.
+  * Khi emotion 3.0s kết thúc $\rightarrow$ controller chuyển sang baseline (mang `effects: []`) $\rightarrow$ effect tự động biến mất sạch sẽ.
+  * Khi nhận State Event, `neutral`, hoặc `reset` $\rightarrow$ baseline sạch được kích hoạt $\rightarrow$ xóa toàn bộ transient effects.
+* **Phân lớp SVG hai tầng:**
+  * `layer="background"`: Render ký hiệu `zzz` bay bên ngoài cụm ngũ quan.
+  * `layer="foreground"`: Render `stars`, `sweat`, và `blush` halo bám theo cụm ngũ quan trong `<motion.g id="facial-content">`.
 
 ---
 
-## 7. Hướng Phát Triển Tại FACE-02
+## 6. Khả Năng Tiếp Cận (Accessibility & Reduced Motion)
 
-1. **Hiệu ứng chuyển cảnh mượt mà (Morphing & Transition Animation):** Áp dụng Framer Motion hoặc requestAnimationFrame để làm mịn việc chuyển dịch giữa các thông số `FaceParameters` với spring physics tự nhiên.
-2. **Cơ chế chớp mắt tự động (Auto-Blinking Loop):** Bộ đếm thời gian ngẫu nhiên (2-6 giây) kích hoạt nhịp chớp mắt tự nhiên (micro-interaction) mà không làm gián đoạn biểu cảm hiện tại.
-3. **Cử động thở nhẹ (Idle Breathing Micro-motion):** Dao động nhẹ nhàng của mắt và khuôn mặt theo chu kỳ giúp robot trông luôn sống động ngay cả ở trạng thái Idle.
-4. **Emotion State Machine & Event Dispatcher:** Xây dựng state machine quản lý hàng đợi biểu cảm (queue), độ ưu tiên (priority) và thời gian duy trì trước khi quay về trạng thái Idle.
+* Khi người dùng bật `prefers-reduced-motion`:
+  * Transition thời gian giảm về $0.01\text{s}$.
+  * Auto Blink và Ambient Breathing Motion tự động tắt.
+  * Các loop animation xoay/bay/trượt của `stars`, `zzz`, `sweat`, `blush` dừng hoàn toàn.
+  * Giữ một frame SVG tĩnh đại diện rõ ràng với `opacity: 0.85`, không gây nhấp nháy hay mỏi mắt.
+
+---
+
+## 7. Trạng Thái Hiện Tại & Lộ Trình Checkpoint
+
+* **FACE-01 (Hoàn thành):** SVG Baseline Renderer tĩnh & Expression Presets.
+* **FACE-02 (Hoàn thành):** Smooth Transition Animation qua Framer Motion MotionValues & Unified Mouth Topology.
+* **FACE-03 (Hoàn thành):** Cơ chế tự động chớp mắt ngẫu nhiên (Auto Blink 2.5s–6.0s) & Page Visibility API.
+* **FACE-04 (Hoàn thành):** Vi chuyển động thở nhẹ tự nhiên (Ambient Micro-motion chu kỳ 4.0s).
+* **FACE-05 (Hoàn thành):** Robot Face State Machine & Expression Controller (`useRobotFaceController`, Priority, Latest-Wins, FIFO Queue 20).
+* **FACE-06 (Hoàn thành):** Semantic Event Layer & Simulator (`useRobotFaceEventBridge`, Operational State, Transient Emotion, Baseline Invariant, Deduplication Registry).
+* **FACE-07 (Hoàn thành):** Extended Robot Emotions & Layered Visual Effects (8 Expressions, 7 Emotions, `mouthWidth`, Sleepy Blink Profile, Layered Visual Effects: Stars, Zzz, Sweat, Blush).

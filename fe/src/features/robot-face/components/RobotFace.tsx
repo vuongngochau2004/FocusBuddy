@@ -1,50 +1,60 @@
+'use client';
+
 import React, { useId } from 'react';
-import { RobotFaceProps } from '../robot-face.types';
+import { motion, useTransform, useReducedMotion } from 'framer-motion';
+import { RobotFaceProps, normalizeRobotFaceEffects } from '../robot-face.types';
 import { expressionPresets, idleFace, interpolateFaceParameters } from '../expression-presets';
-
-/**
- * Tạo đường dẫn SVG path cho mắt robot dựa trên độ mở và độ cong
- */
-function generateEyePath(cx: number, cy: number, open: number, curvature: number): string {
-  const clampedOpen = Math.max(0.08, open);
-  const halfWidth = 24;
-  const halfHeight = 25 * clampedOpen;
-
-  const leftX = cx - halfWidth;
-  const rightX = cx + halfWidth;
-  const midY = cy;
-
-  // Điều chỉnh đỉnh cong mí trên và mí dưới
-  const topControlY = cy - halfHeight - curvature * 9;
-  const bottomControlY = cy + halfHeight - curvature * 14;
-
-  return `M ${leftX} ${midY} Q ${cx} ${topControlY} ${rightX} ${midY} Q ${cx} ${bottomControlY} ${leftX} ${midY} Z`;
-}
+import { useAnimatedFaceParameters } from '../hooks/useAnimatedFaceParameters';
+import { useAmbientFaceMotion } from '../hooks/useAmbientFaceMotion';
+import { RobotFaceEffects } from './RobotFaceEffects';
 
 /**
  * RobotFace SVG Component
  *
- * Hiển thị khuôn mặt robot FocusBuddy dưới dạng vector SVG thuần túy.
- * Hỗ trợ co giãn theo kích thước (size) và chuyển đổi các biểu cảm thông qua nội suy tuyến tính.
+ * Hiển thị khuôn mặt robot FocusBuddy dưới dạng vector SVG với chuyển động mượt mà (Framer Motion),
+ * hỗ trợ 8 biểu cảm mở rộng, cơ chế Auto Blink đa profile (default / sleepy),
+ * vi chuyển động thở (Ambient Micro-motion), và hệ thống hiệu ứng trực quan phân tầng (Visual Effects).
+ * Sử dụng kiến trúc Direct MotionValue Updates (Zero React state per frame).
  */
 export const RobotFace: React.FC<RobotFaceProps> = ({
   expression = 'idle',
   intensity = 1,
   size = 480,
   className = '',
+  animated = true,
+  autoBlink = true,
+  ambientMotion = true,
+  effects = [],
 }) => {
   const uniqueId = useId().replace(/:/g, '_');
+  const shouldReduceMotion = useReducedMotion();
 
-  // Lấy preset mục tiêu và thực hiện nội suy thông số
+  // Chuẩn hóa danh sách hiệu ứng trực quan
+  const normalizedEffects = normalizeRobotFaceEffects(effects);
+
+  // Xác định Blink Profile dựa trên biểu cảm
+  const blinkProfile = expression === 'sleepy' ? 'sleepy' : 'default';
+
+  // Lấy preset mục tiêu và tính toán target parameters
   const targetPreset = expressionPresets[expression] ?? idleFace;
-  const params = interpolateFaceParameters(idleFace, targetPreset, intensity);
+  const targetParams = interpolateFaceParameters(idleFace, targetPreset, intensity);
 
-  // Tọa độ hình học cơ sở
-  const leftEyeCenter = { x: 135, y: 115 };
-  const rightEyeCenter = { x: 265, y: 115 };
-  const leftEyebrowPivot = { x: 135, y: 68 + params.leftEyebrowOffsetY };
-  const rightEyebrowPivot = { x: 265, y: 68 + params.rightEyebrowOffsetY };
-  const mouthCenter = { x: 200, y: 168 };
+  // Quản lý animation qua MotionValues, derived transforms và Auto Blink
+  const animatedValues = useAnimatedFaceParameters(
+    targetParams,
+    animated,
+    autoBlink,
+    blinkProfile
+  );
+
+  // Quản lý vi chuyển động thở idle quanh tâm hình học (200, 125)
+  const ambientValues = useAmbientFaceMotion(expression, ambientMotion, animated);
+
+  // Quầng sáng nền kết hợp bộ nhân phát quang nhịp thở
+  const effectiveAmbientGlowOpacity = useTransform(
+    [animatedValues.ambientGlowOpacity, ambientValues.glowMultiplier],
+    ([base, mult]) => Math.max(0, Math.min(1, (base as number) * (mult as number)))
+  );
 
   // ID cho gradients và filters
   const visorGradId = `visor-grad-${uniqueId}`;
@@ -55,33 +65,7 @@ export const RobotFace: React.FC<RobotFaceProps> = ({
 
   // Kích thước co giãn
   const svgHeight = Math.round((size * 240) / 400);
-
-  // Tính toán đường vẽ miệng
-  const mouthHalfWidth = 28 + Math.abs(params.mouthCurvature) * 6;
-  const mouthLeftX = mouthCenter.x - mouthHalfWidth;
-  const mouthRightX = mouthCenter.x + mouthHalfWidth;
-  const mouthBaseY = mouthCenter.y - params.mouthCurvature * 3;
-  const mouthTopControlY = mouthCenter.y + params.mouthCurvature * 14;
-  const mouthBottomControlY = mouthCenter.y + params.mouthCurvature * 14 + params.mouthOpen * 22;
-
-  const mouthPath =
-    params.mouthOpen > 0.08
-      ? `M ${mouthLeftX} ${mouthBaseY} Q ${mouthCenter.x} ${mouthTopControlY} ${mouthRightX} ${mouthBaseY} Q ${mouthCenter.x} ${mouthBottomControlY} ${mouthLeftX} ${mouthBaseY} Z`
-      : `M ${mouthLeftX} ${mouthBaseY} Q ${mouthCenter.x} ${mouthTopControlY} ${mouthRightX} ${mouthBaseY}`;
-
-  const leftEyePath = generateEyePath(
-    leftEyeCenter.x,
-    leftEyeCenter.y,
-    params.eyeOpen,
-    params.eyeCurvature
-  );
-
-  const rightEyePath = generateEyePath(
-    rightEyeCenter.x,
-    rightEyeCenter.y,
-    params.eyeOpen,
-    params.eyeCurvature
-  );
+  const isReducedMotionActive = Boolean(shouldReduceMotion || !animated);
 
   return (
     <svg
@@ -115,7 +99,7 @@ export const RobotFace: React.FC<RobotFaceProps> = ({
 
         {/* Hiệu ứng hào quang phát sáng cyan */}
         <filter id={glowFilterId} x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation={3.5 * params.glowIntensity} result="coloredBlur" />
+          <motion.feGaussianBlur stdDeviation={animatedValues.glowStdDev} result="coloredBlur" />
           <feMerge>
             <feMergeNode in="coloredBlur" />
             <feMergeNode in="SourceGraphic" />
@@ -124,20 +108,20 @@ export const RobotFace: React.FC<RobotFaceProps> = ({
 
         {/* Gradient phát sáng nền trung tâm (ambient glow) */}
         <radialGradient id={ambientGradId} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.2 * params.glowIntensity} />
-          <stop offset="70%" stopColor="#06b6d4" stopOpacity={0.04 * params.glowIntensity} />
-          <stop offset="100%" stopColor="#06b6d4" stopOpacity={0} />
+          <stop offset="0%" stopColor="#06b6d4" stopOpacity="1" />
+          <stop offset="70%" stopColor="#06b6d4" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
         </radialGradient>
 
         {/* Gradient má hồng nhẹ */}
         <radialGradient id={blushGradId} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#fb7185" stopOpacity="0.8" />
+          <stop offset="0%" stopColor="#fb7185" stopOpacity="0.85" />
           <stop offset="70%" stopColor="#f43f5e" stopOpacity="0.3" />
           <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
         </radialGradient>
       </defs>
 
-      {/* Layer 1: Nền / Mặt kính màu tối bo tròn */}
+      {/* Layer 1: Nền / Mặt kính màu tối bo tròn (Tĩnh tuyệt đối) */}
       <g id="screen-visor">
         <rect
           x="12"
@@ -160,126 +144,138 @@ export const RobotFace: React.FC<RobotFaceProps> = ({
         />
       </g>
 
-      {/* Layer 2: Ánh sáng nền Cyan (Ambient Glow) */}
+      {/* Layer 2: Ánh sáng nền Cyan (Ambient Glow với Pulse nhẹ) */}
       <g id="ambient-glow" pointerEvents="none">
-        <ellipse cx="200" cy="120" rx="140" ry="85" fill={`url(#${ambientGradId})`} />
-      </g>
-
-      {/* Layer 3: Lông mày trái */}
-      <g id="left-eyebrow">
-        <rect
-          x={leftEyebrowPivot.x - 22}
-          y={leftEyebrowPivot.y - 3.5}
-          width="44"
-          height="7"
-          rx="3.5"
-          fill="#22d3ee"
-          filter={`url(#${glowFilterId})`}
-          transform={`rotate(${params.leftEyebrowAngle}, ${leftEyebrowPivot.x}, ${leftEyebrowPivot.y})`}
+        <motion.ellipse
+          cx="200"
+          cy="120"
+          rx="140"
+          ry="85"
+          fill={`url(#${ambientGradId})`}
+          opacity={effectiveAmbientGlowOpacity}
         />
       </g>
 
-      {/* Layer 4: Lông mày phải */}
-      <g id="right-eyebrow">
-        <rect
-          x={rightEyebrowPivot.x - 22}
-          y={rightEyebrowPivot.y - 3.5}
-          width="44"
-          height="7"
-          rx="3.5"
-          fill="#22d3ee"
-          filter={`url(#${glowFilterId})`}
-          transform={`rotate(${-params.rightEyebrowAngle}, ${rightEyebrowPivot.x}, ${rightEyebrowPivot.y})`}
-        />
-      </g>
+      {/* Layer 2.5: Background Visual Effects (Zzz bay bên ngoài cụm ngũ quan) */}
+      <RobotFaceEffects
+        effects={normalizedEffects}
+        intensity={intensity}
+        reducedMotion={isReducedMotionActive}
+        layer="background"
+      />
 
-      {/* Layer 5: Mắt trái */}
-      <g id="left-eye">
-        <path
-          d={leftEyePath}
-          fill={`url(#${eyeGradId})`}
-          filter={`url(#${glowFilterId})`}
-        />
-        {/* Đốm sáng tạo chiều sâu trong mắt */}
-        {params.eyeOpen > 0.4 && (
-          <ellipse
-            cx={leftEyeCenter.x - 7}
-            cy={leftEyeCenter.y - (10 * params.eyeOpen)}
-            rx="4"
-            ry={3.5 * params.eyeOpen}
-            fill="#ffffff"
-            opacity="0.8"
+      {/* Cụm ngũ quan chuyển động thở vi mô quanh tâm (200, 125) */}
+      <motion.g id="facial-content" transform={ambientValues.facialContentTransform}>
+        {/* Layer 3: Lông mày trái */}
+        <g id="left-eyebrow">
+          <motion.rect
+            x={135 - 22}
+            y={animatedValues.leftEyebrowY}
+            width="44"
+            height="7"
+            rx="3.5"
+            fill="#22d3ee"
+            filter={`url(#${glowFilterId})`}
+            transform={animatedValues.leftEyebrowTransform}
           />
-        )}
-      </g>
+        </g>
 
-      {/* Layer 6: Mắt phải */}
-      <g id="right-eye">
-        <path
-          d={rightEyePath}
-          fill={`url(#${eyeGradId})`}
-          filter={`url(#${glowFilterId})`}
-        />
-        {/* Đốm sáng tạo chiều sâu trong mắt */}
-        {params.eyeOpen > 0.4 && (
-          <ellipse
-            cx={rightEyeCenter.x + 7}
-            cy={rightEyeCenter.y - (10 * params.eyeOpen)}
-            rx="4"
-            ry={3.5 * params.eyeOpen}
-            fill="#ffffff"
-            opacity="0.8"
+        {/* Layer 4: Lông mày phải */}
+        <g id="right-eyebrow">
+          <motion.rect
+            x={265 - 22}
+            y={animatedValues.rightEyebrowY}
+            width="44"
+            height="7"
+            rx="3.5"
+            fill="#22d3ee"
+            filter={`url(#${glowFilterId})`}
+            transform={animatedValues.rightEyebrowTransform}
           />
-        )}
-      </g>
+        </g>
 
-      {/* Layer 7: Miệng */}
-      <g id="mouth">
-        {params.mouthOpen > 0.08 ? (
-          <path
-            d={mouthPath}
+        {/* Layer 5: Mắt trái */}
+        <g id="left-eye">
+          <motion.path
+            d={animatedValues.leftEyePath}
+            fill={`url(#${eyeGradId})`}
+            filter={`url(#${glowFilterId})`}
+          />
+          {/* Đốm sáng tạo chiều sâu trong mắt (mờ dần mượt mà khi nhắm) */}
+          <motion.ellipse
+            cx={135 - 7}
+            cy={animatedValues.leftPupilCy}
+            rx="4"
+            ry={animatedValues.leftPupilRy}
+            fill="#ffffff"
+            opacity={animatedValues.leftPupilOpacity}
+          />
+        </g>
+
+        {/* Layer 6: Mắt phải */}
+        <g id="right-eye">
+          <motion.path
+            d={animatedValues.rightEyePath}
+            fill={`url(#${eyeGradId})`}
+            filter={`url(#${glowFilterId})`}
+          />
+          {/* Đốm sáng tạo chiều sâu trong mắt (mờ dần mượt mà khi nhắm) */}
+          <motion.ellipse
+            cx={265 + 7}
+            cy={animatedValues.rightPupilCy}
+            rx="4"
+            ry={animatedValues.rightPupilRy}
+            fill="#ffffff"
+            opacity={animatedValues.rightPupilOpacity}
+          />
+        </g>
+
+        {/* Layer 7: Miệng (Unified Continuous Closed Path M Q Q Z) */}
+        <g id="mouth">
+          <motion.path
+            d={animatedValues.mouthPath}
             fill="#083344"
+            fillOpacity={animatedValues.mouthFillOpacity}
             stroke="#22d3ee"
-            strokeWidth="4"
+            strokeWidth="4.5"
             strokeLinecap="round"
             strokeLinejoin="round"
             filter={`url(#${glowFilterId})`}
           />
-        ) : (
-          <path
-            d={mouthPath}
-            fill="none"
-            stroke="#22d3ee"
-            strokeWidth="5"
-            strokeLinecap="round"
-            filter={`url(#${glowFilterId})`}
+        </g>
+
+        {/* Layer 8: Má hồng trái */}
+        <g id="left-blush">
+          <motion.ellipse
+            cx="92"
+            cy="146"
+            rx="24"
+            ry="12"
+            fill={`url(#${blushGradId})`}
+            opacity={animatedValues.blushOpacity}
           />
-        )}
-      </g>
+        </g>
 
-      {/* Layer 8: Má hồng trái */}
-      <g id="left-blush">
-        <ellipse
-          cx="92"
-          cy="146"
-          rx="24"
-          ry="12"
-          fill={`url(#${blushGradId})`}
-          opacity={params.blushOpacity}
-        />
-      </g>
+        {/* Layer 9: Má hồng phải */}
+        <g id="right-blush">
+          <motion.ellipse
+            cx="308"
+            cy="146"
+            rx="24"
+            ry="12"
+            fill={`url(#${blushGradId})`}
+            opacity={animatedValues.blushOpacity}
+          />
+        </g>
 
-      {/* Layer 9: Má hồng phải */}
-      <g id="right-blush">
-        <ellipse
-          cx="308"
-          cy="146"
-          rx="24"
-          ry="12"
-          fill={`url(#${blushGradId})`}
-          opacity={params.blushOpacity}
+        {/* Layer 10: Foreground Visual Effects (Stars, Sweat, Blush halo bám theo ngũ quan) */}
+        <RobotFaceEffects
+          effects={normalizedEffects}
+          intensity={intensity}
+          reducedMotion={isReducedMotionActive}
+          layer="foreground"
         />
-      </g>
+      </motion.g>
     </svg>
   );
 };
