@@ -6,6 +6,7 @@ import Hero from './components/Hero';
 import TrustStrip from './components/TrustStrip';
 import Features from './components/Features';
 import ArchitectureAnimation from './components/ArchitectureAnimation';
+import InteractiveAgents from './components/InteractiveAgents';
 
 export default function LandingPage() {
   return (
@@ -16,6 +17,7 @@ export default function LandingPage() {
         <TrustStrip />
         <Features />
         <ArchitectureAnimation />
+        <InteractiveAgents />
       </main>
     </div>
   );
