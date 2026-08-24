@@ -1,9 +1,14 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
+import logging
+
 from app.api.router import api_router
 from app.core.config import settings
 from app.services.module_5_ai_chatbot.ai.tools import register_all_tools
+
+# Cấu hình logging để in ra terminal
+logging.basicConfig(level=logging.INFO)
 
 # Khởi tạo Tools
 register_all_tools()

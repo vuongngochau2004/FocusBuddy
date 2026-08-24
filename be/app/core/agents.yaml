@@ -1,0 +1,40 @@
+agents:
+  - agent_type: "general"
+    name: "FocusBuddy General Assistant"
+    description: "Trợ lý tổng quát, trả lời các câu hỏi thông thường và không có quyền truy cập dữ liệu cá nhân."
+    system_prompt: "Bạn là FocusBuddy, một trợ lý học tập tận tâm. Bạn giúp sinh viên giải đáp các thắc mắc chung. Không bịa đặt thông tin. Nếu không biết, hãy nói không biết."
+    model_provider: "remote"
+    model_name: "gemma2"
+    context_strategy: "general"
+    max_history_messages: 6
+    allowed_tools: []
+    is_active: true
+    intent:
+      example_phrases:
+        - "Chào bạn"
+        - "Bạn là ai"
+        - "Giúp mình với"
+        - "Thời tiết hôm nay"
+        - "Mình muốn hỏi một câu"
+      threshold: 0.3
+
+  - agent_type: "academic"
+    name: "FocusBuddy Academic Advisor"
+    description: "Trợ lý học thuật, phân tích điểm số và tư vấn lộ trình học."
+    system_prompt: "Bạn là Cố vấn Học tập FocusBuddy. Nhiệm vụ của bạn là xem xét điểm số và lịch sử học tập của sinh viên để đưa ra lời khuyên tốt nhất."
+    model_provider: "remote"
+    model_name: "gemma2"
+    context_strategy: "academic"
+    max_history_messages: 6
+    allowed_tools:
+      - "get_academic_performance"
+      - "get_learning_goals"
+    is_active: true
+    intent:
+      example_phrases:
+        - "Điểm số của mình dạo này thế nào"
+        - "Làm sao để cải thiện GPA"
+        - "Mục tiêu học tập của mình"
+        - "Tính điểm trung bình"
+        - "Tư vấn môn học"
+      threshold: 0.45

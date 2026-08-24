@@ -16,4 +16,4 @@ Tài liệu này cung cấp cái nhìn tổng quan về công nghệ và cấu h
 
 ## 3. Cách Frontend gọi Backend
 
-Trình duyệt của người dùng gửi các API requests. Vì vậy, frontend code hoạt động trên trình duyệt không thể hiểu được tên miền container như `http://backend:8000`. Thay vào đó, API calls phải được cấu hình gửi trực tiếp đến host URL mà máy tính của người dùng nhìn thấy, đó là `http://localhost:8000`.
+Trình duyệt của người dùng gửi các API requests. Vì vậy, frontend code hoạt động trên trình duyệt không thể hiểu được tên miền container như `http://backend:8018`. Thay vào đó, API calls phải được cấu hình gửi trực tiếp đến host URL mà máy tính của người dùng nhìn thấy, đó là `http://localhost:8018`.

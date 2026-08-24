@@ -95,12 +95,32 @@ export default function ChatbotPage() {
     setLoading(true);
 
     try {
-      const res = await chatService.sendMessage(sessionId, {
+      const aiMessage: ChatMessage = {
+        id: `temp-ai-${Date.now()}`,
+        session_id: sessionId,
+        sender_type: 'BOT',
+        content: '',
+        message_type: 'TEXT',
+        created_at: new Date().toISOString(),
+      };
+      // We set loading false immediately because we start streaming text
+      setLoading(false);
+      setMessages((prev) => [...prev.filter((m) => m.id !== userMessage.id), userMessage, aiMessage]);
+
+      const stream = chatService.sendMessageStream(sessionId, {
         content: input,
         message_type: 'TEXT',
       });
-      setMessages((prev) => [...prev.filter((m) => m.id !== userMessage.id), userMessage, res.data]);
+      
+      let fullContent = '';
+      for await (const chunk of stream) {
+        fullContent += chunk;
+        setMessages((prev) => 
+          prev.map((msg) => msg.id === aiMessage.id ? { ...msg, content: fullContent } : msg)
+        );
+      }
     } catch (err) {
+      setLoading(false);
       const errorMsg: ChatMessage = {
         id: `error-${Date.now()}`,
         session_id: sessionId,
@@ -110,8 +130,6 @@ export default function ChatbotPage() {
         created_at: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMsg]);
-    } finally {
-      setLoading(false);
     }
   };
 

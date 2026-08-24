@@ -125,6 +125,28 @@ export const chatService = {
 
   sendMessage: (sessionId: string, data: ChatMessageCreate) =>
     api.post<ChatMessage>(`/v1/chat/sessions/${sessionId}/messages`, data),
+
+  sendMessageStream: async function* (sessionId: string, data: ChatMessageCreate) {
+    const userId = localStorage.getItem('focusbuddy_user_id');
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8018/api';
+    const response = await fetch(`${baseUrl}/v1/chat/sessions/${sessionId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': userId || '',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.body) throw new Error('No response body');
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      yield decoder.decode(value, { stream: true });
+    }
+  },
 };
 
 // ===== GRADE SERVICE =====

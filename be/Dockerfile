@@ -17,8 +17,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy toàn bộ mã nguồn
 COPY . .
 
-# Mở cổng 8000
-EXPOSE 8000
+# Mở cổng 8018
+EXPOSE 8018
 
 # Khởi chạy server FastAPI với chế độ hot-reload
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8018", "--reload"]

@@ -53,10 +53,10 @@ Khi các container nằm trong cùng một mạng nội bộ Docker giao tiếp 
 ### Browser → Host
 
 Khi trình duyệt (Browser) thực hiện truy vấn, nó gửi yêu cầu từ phía máy client (máy host thực tế) chứ không nằm trong mạng Docker. Do đó, browser cần truy cập thông qua `localhost`:
-- Frontend/browser: `localhost:8000` (để gọi API của Backend)
+- Frontend/browser: `localhost:8018` (để gọi API của Backend)
 - Frontend/browser: `localhost:3000` (để truy cập giao diện trang web)
 
-Không thể sử dụng `backend:8000` từ browser vì trình duyệt của người dùng không có khả năng phân giải service name nội bộ `backend` của Docker network.
+Không thể sử dụng `backend:8018` từ browser vì trình duyệt của người dùng không có khả năng phân giải service name nội bộ `backend` của Docker network.
 
 ## 5. Cách chạy project
 

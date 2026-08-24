@@ -1,5 +1,4 @@
 import os
-from sentence_transformers import SentenceTransformer, util
 
 # Dữ liệu mẫu cực kỳ quan trọng để "dạy" Router
 INTENT_SAMPLES = {
@@ -49,7 +48,7 @@ INTENT_SAMPLES = {
 class IntentRouter:
     _instance = None
     
-    # Sử dụng Singleton pattern để model chỉ được load 1 lần duy nhất vào RAM
+    # Sử dụng Singleton pattern
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(IntentRouter, cls).__new__(cls)
@@ -57,43 +56,24 @@ class IntentRouter:
         return cls._instance
         
     def _initialize(self):
-        # Sử dụng model siêu nhẹ, hỗ trợ đa ngôn ngữ (bao gồm tiếng Việt)
-        model_name = os.getenv("ROUTER_EMBEDDING_MODEL", "paraphrase-multilingual-MiniLM-L12-v2")
-        print(f"Loading embedding model '{model_name}' for Intent Router...")
-        self.model = SentenceTransformer(model_name)
-        
-        # Flatten dữ liệu để tính toán vector dễ hơn
-        self.sentences = []
-        self.labels = []
-        for intent, samples in INTENT_SAMPLES.items():
-            for text in samples:
-                self.sentences.append(text)
-                self.labels.append(intent)
-                
-        # Tiền tính toán toàn bộ vector của các câu mẫu lưu sẵn vào RAM
-        print("Pre-computing embeddings for intent samples...")
-        self.corpus_embeddings = self.model.encode(self.sentences, convert_to_tensor=True)
-        print("Intent Router initialized successfully.")
+        print("Intent Router initialized successfully (keyword matching mode).")
 
     def classify_intent(self, user_message: str, threshold: float = 0.4) -> str:
         """
         Nhận vào tin nhắn của user, trả về loại Agent phù hợp nhất.
-        Nếu độ tin cậy < threshold, trả về general.
+        Sử dụng so khớp từ khóa đơn giản.
         """
-        # Chuyển tin nhắn mới thành vector
-        query_embedding = self.model.encode(user_message, convert_to_tensor=True)
+        user_msg_lower = user_message.lower()
         
-        # Tính toán độ tương đồng Cosine giữa tin nhắn mới và các câu mẫu
-        cos_scores = util.cos_sim(query_embedding, self.corpus_embeddings)[0]
+        # Thử tìm xem có từ khóa nào của các intent khớp với tin nhắn không
+        for intent, samples in INTENT_SAMPLES.items():
+            for text in samples:
+                text_lower = text.lower()
+                # Có thể làm logic tìm kiếm mềm hơn, ở đây ta dùng substring đơn giản
+                if text_lower in user_msg_lower or user_msg_lower in text_lower:
+                    return intent
         
-        # Lấy ra index của câu mẫu giống nhất
-        best_idx = cos_scores.argmax().item()
-        best_score = cos_scores[best_idx].item()
-        
-        if best_score < threshold:
-            return "general"
-            
-        return self.labels[best_idx]
+        return "general"
 
 # Để dễ test khi chạy trực tiếp file này
 if __name__ == "__main__":
@@ -103,7 +83,8 @@ if __name__ == "__main__":
         "Mình đang bị khủng hoảng tâm lý vì rớt môn C++",
         "Chỉ mình cách giải phương trình bậc 2 này với",
         "Lên lịch ôn thi cuối kỳ giúp mình",
-        "Xin chào"
+        "Xin chào",
+        "buồn chán"
     ]
     
     for case in test_cases:

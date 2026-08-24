@@ -1,26 +1,28 @@
 import logging
 import json
+import uuid
 from typing import AsyncGenerator
 from sqlalchemy.orm import Session
 
-from app.models.module_5_ai_chatbot.agent_config import AgentConfig
+from app.schemas.module_5_ai_chatbot.agent_config_schema import AgentConfigYaml
 from app.services.module_5_ai_chatbot.ai.provider import ProviderFactory
 from app.services.module_5_ai_chatbot.ai.tools.registry import ToolRegistry
 from app.services.module_5_ai_chatbot.ai.tools.executor import ToolExecutor
-# Assuming ContextBuilder and PromptBuilder will be implemented/refactored
+from app.repositories.module_5_ai_chatbot.chat_repository import ChatRepository
+from app.models.module_5_ai_chatbot.chat_message import SenderType
 from app.services.module_5_ai_chatbot.ai.context_builder import AIContextBuilder
 from app.services.module_5_ai_chatbot.ai.prompt_builder import PromptBuilder
 
 logger = logging.getLogger(__name__)
 
-MAX_TOOL_ITERATIONS = 5
+MAX_TOOL_ITERATIONS = 3
 
 class AgentRuntime:
     """
-    The Core Execution Engine of the Agent System V2.
-    It orchestrates the Context, Prompt, Tool execution, and LLM communication.
+    Agent Runtime Engine V2.
+    Implements a ReAct loop: Generate -> Tool Call -> Execute -> Provide Context -> Generate Final.
     """
-    def __init__(self, db: Session, config: AgentConfig, user_id: str):
+    def __init__(self, db: Session, config: AgentConfigYaml, user_id: str):
         self.db = db
         self.config = config
         self.user_id = user_id
@@ -32,19 +34,31 @@ class AgentRuntime:
         State Machine: CALL_LLM -> TOOL_CALL -> EXECUTE -> APPEND_RESULT -> CALL_LLM
         """
         # 1. Build Context
-        context_builder = AIContextBuilder(self.db, self.user_id)
-        context = context_builder.build_context(strategy=self.config.context_strategy)
+        context_builder = AIContextBuilder(self.db, uuid.UUID(self.user_id))
+        context = context_builder.build_context(strategy=self.config.context_strategy or "general")
 
         # 2. Prepare Tools Schema
         tools_schema = None
         if self.config.allowed_tools:
             tools_schema = ToolRegistry.get_all_tools_schema(self.config.allowed_tools)
 
+        # Fetch Recent History
+        chat_repo = ChatRepository()
+        recent_msgs = chat_repo.get_messages_by_session(self.db, uuid.UUID(session_id), skip=0, limit=10)
+        recent_msgs.reverse() # Oldest to newest
+        
+        history = []
+        for msg in recent_msgs:
+            # We don't include the current user message being processed as it's added below
+            if msg.content != user_message: # Basic deduplication if it was just saved
+                role = "user" if msg.sender_type == SenderType.USER else "assistant"
+                history.append({"role": role, "content": msg.content})
+
         # 3. Build Prompt (System, Few-Shot, History, Context, Current Message)
         messages = PromptBuilder.build_messages(
             config=self.config,
             context=context,
-            history=[], # Tạm thời để trống history, sau này lấy từ ChatRepository
+            history=history,
             user_message=user_message
         )
         
@@ -98,7 +112,7 @@ class AgentRuntime:
                 tool_results_str += f"\n[Kết quả Tool '{tc.name}']: {result_str}\n"
                 
             # STATE: APPEND_RESULT (Prepare next user message)
-            current_user_msg = f"Hệ thống báo cáo kết quả công cụ (chỉ sử dụng làm ngữ cảnh, không cần lặp lại kết quả thô):\n{tool_results_str}\nHãy phân tích và trả lời người dùng dựa trên kết quả trên."
+            current_user_msg = f"Tool Execution Results:\n{tool_results_str}\n\nPlease provide the final response to the user based on the tool results above."
             
         else:
             # Reached MAX_TOOL_ITERATIONS without breaking
