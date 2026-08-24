@@ -9,6 +9,7 @@ import ArchitectureAnimation from './components/ArchitectureAnimation';
 import InteractiveAgents from './components/InteractiveAgents';
 import Personalization from './components/Personalization';
 import WorkflowOCR from './components/WorkflowOCR';
+import StreamingDemo from './components/StreamingDemo';
 
 export default function LandingPage() {
   return (
@@ -22,6 +23,7 @@ export default function LandingPage() {
         <InteractiveAgents />
         <Personalization />
         <WorkflowOCR />
+        <StreamingDemo />
       </main>
     </div>
   );
