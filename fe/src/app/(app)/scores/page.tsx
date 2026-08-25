@@ -124,8 +124,8 @@ export default function ScoresPage() {
       const grades = gradesRes.data || [];
       const dbStats = statsRes.data || [];
 
-      const termMap = new Map(terms.map((t: any) => [t.id, t]));
-      const courseMap = new Map(courses.map((c: any) => [c.id, c]));
+      const termMap = new Map<string, any>(terms.map((t: any) => [t.id, t]));
+      const courseMap = new Map<string, any>(courses.map((c: any) => [c.id, c]));
 
       const grouped = new Map<string, any>();
 

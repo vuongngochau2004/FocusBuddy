@@ -111,7 +111,7 @@ export default function DashboardPage() {
         new Set(
           allSessions.map((s) => new Date(s.start_time).toDateString())
         )
-      ).map((d) => new Date(d).getTime());
+      ).map((d) => new Date(d as string).getTime());
 
       uniqueDays.sort((a, b) => b - a); // Sắp xếp ngày mới nhất lên đầu
 
