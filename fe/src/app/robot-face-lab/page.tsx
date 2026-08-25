@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Maximize2 } from 'lucide-react';
 import {
   RobotFace,
+  RobotFaceFullscreenContainer,
+  useRobotFaceFullscreen,
   RobotExpression,
   RobotFaceEffect,
   RobotFacePriority,
@@ -56,6 +59,7 @@ const RAW_DURATIONS: { label: string; value: number | undefined }[] = [
  */
 function SemanticEventSimulator() {
   const bridge = useRobotFaceEventBridge();
+  const fullscreen = useRobotFaceFullscreen();
 
   // Visual preview controls
   const [previewSize, setPreviewSize] = useState<number>(440);
@@ -105,20 +109,38 @@ function SemanticEventSimulator() {
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
               SVG Display Screen (400 × 240)
             </span>
-            <span className="font-mono text-slate-500">{previewSize}px</span>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-slate-500">{previewSize}px</span>
+              <button
+                type="button"
+                onClick={fullscreen.enterFullscreen}
+                title="Toàn màn hình (Fullscreen)"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 transition-all duration-150 shadow-sm"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span>Fullscreen</span>
+              </button>
+            </div>
           </div>
 
           <div className="w-full flex items-center justify-center py-4">
-            <RobotFace
-              expression={bridge.expression}
-              intensity={bridge.intensity}
-              effects={bridge.effects}
-              size={previewSize}
-              animated={animated}
-              autoBlink={autoBlink}
-              ambientMotion={ambientMotion}
-              className="drop-shadow-[0_0_25px_rgba(6,182,212,0.15)]"
-            />
+            <RobotFaceFullscreenContainer
+              fullscreenState={fullscreen}
+              showFullscreenButton={false}
+              className="w-full"
+              contentClassName="w-full flex items-center justify-center"
+            >
+              <RobotFace
+                expression={bridge.expression}
+                intensity={bridge.intensity}
+                effects={bridge.effects}
+                size={previewSize}
+                animated={animated}
+                autoBlink={autoBlink}
+                ambientMotion={ambientMotion}
+                className="drop-shadow-[0_0_25px_rgba(6,182,212,0.15)]"
+              />
+            </RobotFaceFullscreenContainer>
           </div>
 
           <div className="w-full mt-2 pt-3 border-t border-slate-800/50 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
@@ -441,6 +463,7 @@ function SemanticEventSimulator() {
  * 2. Sub-component Expression & Effect Playground (Khám phá 8 Biểu cảm & 4 Hiệu ứng)
  */
 function ExpressionPlayground() {
+  const fullscreen = useRobotFaceFullscreen();
   const [expression, setExpression] = useState<RobotExpression>('happy');
   const [intensity, setIntensity] = useState<number>(1.0);
   const [effects, setEffects] = useState<RobotFaceEffect[]>([]);
@@ -465,20 +488,38 @@ function ExpressionPlayground() {
               <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
               Interactive Playground ({expression})
             </span>
-            <span className="font-mono text-slate-500">{previewSize}px</span>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-slate-500">{previewSize}px</span>
+              <button
+                type="button"
+                onClick={fullscreen.enterFullscreen}
+                title="Toàn màn hình (Fullscreen)"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 transition-all duration-150 shadow-sm"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span>Fullscreen</span>
+              </button>
+            </div>
           </div>
 
           <div className="w-full flex items-center justify-center py-4">
-            <RobotFace
-              expression={expression}
-              intensity={intensity}
-              effects={effects}
-              size={previewSize}
-              animated={animated}
-              autoBlink={autoBlink}
-              ambientMotion={ambientMotion}
-              className="drop-shadow-[0_0_25px_rgba(192,132,252,0.15)]"
-            />
+            <RobotFaceFullscreenContainer
+              fullscreenState={fullscreen}
+              showFullscreenButton={false}
+              className="w-full"
+              contentClassName="w-full flex items-center justify-center"
+            >
+              <RobotFace
+                expression={expression}
+                intensity={intensity}
+                effects={effects}
+                size={previewSize}
+                animated={animated}
+                autoBlink={autoBlink}
+                ambientMotion={ambientMotion}
+                className="drop-shadow-[0_0_25px_rgba(192,132,252,0.15)]"
+              />
+            </RobotFaceFullscreenContainer>
           </div>
 
           <div className="w-full mt-2 pt-3 border-t border-slate-800/50 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
@@ -625,6 +666,7 @@ function ExpressionPlayground() {
  */
 function RawControllerSimulator() {
   const controller = useRobotFaceController();
+  const fullscreen = useRobotFaceFullscreen();
 
   const [previewSize, setPreviewSize] = useState<number>(440);
   const [animated, setAnimated] = useState<boolean>(true);
@@ -673,20 +715,38 @@ function RawControllerSimulator() {
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
               Raw Controller Mode Preview
             </span>
-            <span className="font-mono text-slate-500">{previewSize}px</span>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-slate-500">{previewSize}px</span>
+              <button
+                type="button"
+                onClick={fullscreen.enterFullscreen}
+                title="Toàn màn hình (Fullscreen)"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-all duration-150 shadow-sm"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span>Fullscreen</span>
+              </button>
+            </div>
           </div>
 
           <div className="w-full flex items-center justify-center py-4">
-            <RobotFace
-              expression={controller.expression}
-              intensity={controller.intensity}
-              effects={controller.activeEffects}
-              size={previewSize}
-              animated={animated}
-              autoBlink={autoBlink}
-              ambientMotion={ambientMotion}
-              className="drop-shadow-[0_0_25px_rgba(245,158,11,0.15)]"
-            />
+            <RobotFaceFullscreenContainer
+              fullscreenState={fullscreen}
+              showFullscreenButton={false}
+              className="w-full"
+              contentClassName="w-full flex items-center justify-center"
+            >
+              <RobotFace
+                expression={controller.expression}
+                intensity={controller.intensity}
+                effects={controller.activeEffects}
+                size={previewSize}
+                animated={animated}
+                autoBlink={autoBlink}
+                ambientMotion={ambientMotion}
+                className="drop-shadow-[0_0_25px_rgba(245,158,11,0.15)]"
+              />
+            </RobotFaceFullscreenContainer>
           </div>
         </section>
 

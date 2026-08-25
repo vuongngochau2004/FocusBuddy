@@ -1,6 +1,10 @@
 export { RobotFace } from './components/RobotFace';
 export { RobotFaceEffects } from './components/RobotFaceEffects';
 export type { RobotFaceEffectsProps } from './components/RobotFaceEffects';
+export { RobotFaceFullscreenContainer } from './components/RobotFaceFullscreenContainer';
+export type { RobotFaceFullscreenContainerProps } from './components/RobotFaceFullscreenContainer';
+export { useRobotFaceFullscreen } from './hooks/useRobotFaceFullscreen';
+export type { UseRobotFaceFullscreenReturn } from './hooks/useRobotFaceFullscreen';
 export {
   expressionPresets,
   idleFace,

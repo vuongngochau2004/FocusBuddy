@@ -64,7 +64,8 @@ export const RobotFace: React.FC<RobotFaceProps> = ({
   const ambientGradId = `ambient-grad-${uniqueId}`;
 
   // Kích thước co giãn
-  const svgHeight = Math.round((size * 240) / 400);
+  const svgHeight =
+    typeof size === 'number' ? Math.round((size * 240) / 400) : undefined;
   const isReducedMotionActive = Boolean(shouldReduceMotion || !animated);
 
   return (

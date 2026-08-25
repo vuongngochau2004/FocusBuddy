@@ -80,8 +80,8 @@ export interface RobotFaceProps {
   expression?: RobotExpression;
   /** Cường độ biểu cảm từ 0 đến 1 (mặc định: 1) */
   intensity?: number;
-  /** Chiều rộng khuôn mặt theo pixel (mặc định: 480) */
-  size?: number;
+  /** Chiều rộng khuôn mặt theo pixel hoặc tỷ lệ (mặc định: 480) */
+  size?: number | string;
   /** CSS class tùy biến bổ sung */
   className?: string;
   /** Bật/tắt animation chuyển cảnh biểu cảm (mặc định: true) */

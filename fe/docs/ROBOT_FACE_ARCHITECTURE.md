@@ -158,7 +158,22 @@ fe/
 
 ---
 
-## 7. Trạng Thái Hiện Tại & Lộ Trình Checkpoint
+## 7. Chế Độ Toàn Màn Hình (Fullscreen Presentation Mode - FACE-08)
+
+Để phục vụ hiển thị trên màn hình robot (Raspberry Pi), màn hình phụ, hoặc demo laptop:
+* **Hook điều phối `useRobotFaceFullscreen`:**
+  * Đồng bộ với Fullscreen API của trình duyệt qua sự kiện `fullscreenchange`.
+  * Hỗ trợ CSS Fullscreen Fallback layout (`fixed inset-0 z-[9999]`) khi trình duyệt chặn hoặc không hỗ trợ Fullscreen API.
+  * Hỗ trợ phím tắt `Escape` và tự động cleanup event listeners khi unmount.
+* **Container `RobotFaceFullscreenContainer`:**
+  * Tái sử dụng trực tiếp component `<RobotFace />` mà không làm reset hay ngắt quãng trạng thái emotion.
+  * Tự động scale vector SVG theo tỷ lệ `400:240` với `min(94vw, calc(94vh * (400 / 240)))`, đảm bảo không bị méo hay vỡ layout trên bất kỳ aspect ratio nào.
+  * Nền tối `#05080f` sạch sẽ, không scrollbar, không padding/margin rò rỉ, ẩn toàn bộ navigation và debug controls.
+  * Nút Exit Fullscreen góc trên bên phải mờ tinh tế (`opacity-40 hover:opacity-100`), không gây phân tâm.
+
+---
+
+## 8. Trạng Thái Hiện Tại & Lộ Trình Checkpoint
 
 * **FACE-01 (Hoàn thành):** SVG Baseline Renderer tĩnh & Expression Presets.
 * **FACE-02 (Hoàn thành):** Smooth Transition Animation qua Framer Motion MotionValues & Unified Mouth Topology.
@@ -167,3 +182,4 @@ fe/
 * **FACE-05 (Hoàn thành):** Robot Face State Machine & Expression Controller (`useRobotFaceController`, Priority, Latest-Wins, FIFO Queue 20).
 * **FACE-06 (Hoàn thành):** Semantic Event Layer & Simulator (`useRobotFaceEventBridge`, Operational State, Transient Emotion, Baseline Invariant, Deduplication Registry).
 * **FACE-07 (Hoàn thành):** Extended Robot Emotions & Layered Visual Effects (8 Expressions, 7 Emotions, `mouthWidth`, Sleepy Blink Profile, Layered Visual Effects: Stars, Zzz, Sweat, Blush).
+* **FACE-08 (Hoàn thành):** Robot Face Fullscreen Presentation Mode & Display Container (`useRobotFaceFullscreen`, `RobotFaceFullscreenContainer`, Responsive 400:240 Scaling, Escape Key, Fallback Layout).
