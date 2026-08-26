@@ -16,7 +16,6 @@ import {
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {
-  healthCheck,
   studyTaskService,
   learningGoalService,
   studySessionService,
@@ -52,7 +51,6 @@ const statusLabel: Record<string, string> = {
 };
 
 export default function DashboardPage() {
-  const [apiStatus, setApiStatus] = useState<'loading' | 'ok' | 'error'>('loading');
   const [recentTasks, setRecentTasks] = useState<StudyTask[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
 
@@ -65,11 +63,6 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    // Health check
-    healthCheck()
-      .then(() => setApiStatus('ok'))
-      .catch(() => setApiStatus('error'));
-
     loadDashboardData();
   }, []);
 
@@ -203,22 +196,6 @@ export default function DashboardPage() {
       animate="show"
       className="space-y-6"
     >
-      {/* API Status */}
-      {apiStatus !== 'loading' && (
-        <motion.div
-          variants={item}
-          className={`glass-subtle px-4 py-2.5 flex items-center gap-2 text-sm ${apiStatus === 'ok' ? 'text-green-500' : 'text-red-500'
-            }`}
-        >
-          <div
-            className={`w-2 h-2 rounded-full ${apiStatus === 'ok' ? 'bg-green-500' : 'bg-red-500'
-              } animate-pulse`}
-          />
-          {apiStatus === 'ok'
-            ? 'Backend API đang hoạt động bình thường'
-            : 'Không thể kết nối tới Backend API'}
-        </motion.div>
-      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

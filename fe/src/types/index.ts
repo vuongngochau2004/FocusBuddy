@@ -67,6 +67,7 @@ export interface StudyTask {
   status?: 'TODO' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
   deadline?: string;
   completed_at?: string;
+  created_at?: string;
 }
 
 export interface StudyTaskCreate {
