@@ -95,12 +95,32 @@ export default function ChatbotPage() {
     setLoading(true);
 
     try {
-      const res = await chatService.sendMessage(sessionId, {
+      const aiMessage: ChatMessage = {
+        id: `temp-ai-${Date.now()}`,
+        session_id: sessionId,
+        sender_type: 'BOT',
+        content: '',
+        message_type: 'TEXT',
+        created_at: new Date().toISOString(),
+      };
+      // We set loading false immediately because we start streaming text
+      setLoading(false);
+      setMessages((prev) => [...prev.filter((m) => m.id !== userMessage.id), userMessage, aiMessage]);
+
+      const stream = chatService.sendMessageStream(sessionId, {
         content: input,
         message_type: 'TEXT',
       });
-      setMessages((prev) => [...prev.filter((m) => m.id !== userMessage.id), userMessage, res.data]);
+      
+      let fullContent = '';
+      for await (const chunk of stream) {
+        fullContent += chunk;
+        setMessages((prev) => 
+          prev.map((msg) => msg.id === aiMessage.id ? { ...msg, content: fullContent } : msg)
+        );
+      }
     } catch (err) {
+      setLoading(false);
       const errorMsg: ChatMessage = {
         id: `error-${Date.now()}`,
         session_id: sessionId,
@@ -110,8 +130,6 @@ export default function ChatbotPage() {
         created_at: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMsg]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -149,12 +167,12 @@ export default function ChatbotPage() {
                 onClick={() => selectSession(session.id)}
                 className={`w-full text-left p-3 rounded-xl text-sm transition-all ${
                   activeSession === session.id
-                    ? 'bg-primary-500/15 border border-primary-500/20 text-white'
-                    : 'text-white/50 hover:bg-white/[0.04] hover:text-white/70'
+                    ? 'bg-primary-500/15 border border-primary-500/20 text-slate-800 dark:text-white'
+                    : 'text-slate-500 dark:text-white/50 hover:bg-slate-100/50 dark:hover:bg-white/[0.04] hover:text-slate-800 dark:hover:text-white/70'
                 }`}
               >
                 <p className="font-medium truncate">{session.title || 'Cuộc trò chuyện'}</p>
-                <p className="text-xs text-white/25 mt-1">
+                <p className="text-xs text-slate-400 dark:text-white/25 mt-1">
                   {new Date(session.started_at).toLocaleDateString('vi-VN')}
                 </p>
               </button>
@@ -175,9 +193,9 @@ export default function ChatbotPage() {
             <Sparkles size={16} className="text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-white text-sm">FocusBuddy AI</h3>
-            <p className="text-xs text-green-400 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+            <h3 className="font-semibold text-slate-800 dark:text-white text-sm">FocusBuddy AI</h3>
+            <p className="text-xs text-green-500 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
               Đang hoạt động
             </p>
           </div>
@@ -195,10 +213,10 @@ export default function ChatbotPage() {
               >
                 <Bot size={36} className="text-primary-400" />
               </motion.div>
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-2">
                 Xin chào! Mình là FocusBuddy 🎓
               </h3>
-              <p className="text-sm text-white/40 max-w-md">
+              <p className="text-sm text-slate-500 dark:text-white/40 max-w-md">
                 Mình có thể giúp bạn lên kế hoạch học tập, giải đáp thắc mắc về bài vở,
                 hoặc đưa ra lời khuyên về phương pháp học tập hiệu quả.
               </p>
@@ -241,10 +259,10 @@ export default function ChatbotPage() {
                       msg.sender_type === 'USER' ? 'chat-bubble-user' : 'chat-bubble-ai'
                     }
                   >
-                    <p className="text-sm text-white/85 leading-relaxed whitespace-pre-wrap">
+                    <p className={`text-sm leading-relaxed whitespace-pre-wrap ${msg.sender_type === 'USER' ? 'text-white' : 'text-slate-800 dark:text-white/85'}`}>
                       {msg.content}
                     </p>
-                    <p className="text-[10px] text-white/20 mt-2">
+                    <p className={`text-[10px] mt-2 ${msg.sender_type === 'USER' ? 'text-white/50' : 'text-slate-400 dark:text-white/30'}`}>
                       {new Date(msg.created_at).toLocaleTimeString('vi-VN', {
                         hour: '2-digit',
                         minute: '2-digit',

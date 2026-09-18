@@ -11,9 +11,9 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
 
     # Custom OpenAI-compatible Server Settings (e.g. llm2.dutai.site)
-    CUSTOM_LLM_BASE_URL: str = os.getenv("CUSTOM_LLM_BASE_URL", "https://llm2.dutai.site/v1")
-    CUSTOM_LLM_MODEL: str = os.getenv("CUSTOM_LLM_MODEL", "ggml-org/gemma-4-e4b-it-GGUF:Q4_0")
-    CUSTOM_LLM_API_KEY: str = os.getenv("CUSTOM_LLM_API_KEY", "not-needed")
+    LLM_BASE_URL: str = os.getenv("LLM_BASE_URL", "")
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "")
+    LLM_API_KEY: str = os.getenv("LLM_API_KEY", "")
 
     # Default Extractor Engine: "gemini_vision" | "custom_llm" | "paddle_ocr"
     TRANSCRIPT_EXTRACTOR_TYPE: str = os.getenv("TRANSCRIPT_EXTRACTOR_TYPE", "custom_llm")

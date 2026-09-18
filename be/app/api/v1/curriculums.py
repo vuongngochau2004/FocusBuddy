@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
-from app.schemas.curriculum import CurriculumCreate, CurriculumUpdate, CurriculumResponse, CurriculumListResponse
-from app.services.curriculum_service import CurriculumService
+from app.schemas.module_2_academic_management.curriculum import CurriculumCreate, CurriculumUpdate, CurriculumResponse, CurriculumListResponse
+from app.services.module_2_academic_management.curriculum_service import CurriculumService
 
 router = APIRouter()
 

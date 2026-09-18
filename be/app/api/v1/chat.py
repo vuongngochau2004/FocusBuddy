@@ -4,8 +4,8 @@ from typing import List
 from uuid import UUID
 
 from app.api.dependencies import get_db
-from app.schemas.chat import ChatSessionCreate, ChatSessionResponse, ChatMessageCreate, ChatMessageResponse
-from app.services.chat_service import ChatService
+from app.schemas.module_5_ai_chatbot.chat import ChatSessionCreate, ChatSessionResponse, ChatMessageCreate, ChatMessageResponse
+from app.services.module_5_ai_chatbot.chat_service import ChatService
 
 router = APIRouter()
 chat_service = ChatService()
@@ -29,14 +29,19 @@ def get_chat_sessions(
 ):
     return chat_service.get_user_sessions(db, user_id, skip, limit)
 
-@router.post("/sessions/{session_id}/messages", response_model=ChatMessageResponse)
-def add_message(
+from fastapi.responses import StreamingResponse
+
+@router.post("/sessions/{session_id}/messages")
+async def add_message(
     session_id: UUID,
     req: ChatMessageCreate,
     user_id: UUID = Depends(get_user_id),
     db: Session = Depends(get_db)
 ):
-    return chat_service.add_message_and_reply(db, user_id, session_id, req)
+    return StreamingResponse(
+        chat_service.add_message_and_reply_stream(db, user_id, session_id, req),
+        media_type="text/event-stream"
+    )
 
 @router.get("/sessions/{session_id}/messages", response_model=List[ChatMessageResponse])
 def get_messages(

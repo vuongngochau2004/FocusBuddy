@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import List, Any
 from app.api.dependencies import get_db
-from app.schemas.mental_assessment import MentalAssessmentCreate, MentalAssessmentUpdate, MentalAssessmentResponse
-from app.repositories.mental_assessment_repository import MentalAssessmentRepository
-from app.services.mental_assessment_service import MentalAssessmentService
+from app.schemas.module_4_mental_health.mental_assessment import MentalAssessmentCreate, MentalAssessmentUpdate, MentalAssessmentResponse
+from app.repositories.module_4_mental_health.mental_assessment_repository import MentalAssessmentRepository
+from app.services.module_4_mental_health.mental_assessment_service import MentalAssessmentService
 
 router = APIRouter()
 """

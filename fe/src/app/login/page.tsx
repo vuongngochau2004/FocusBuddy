@@ -1,10 +1,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Mail, Lock, Sparkles, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Sparkles, ArrowRight, Eye, EyeOff, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { userService } from '@/lib/services';
+import { useTheme } from 'next-themes';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -12,6 +13,12 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +47,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 relative">
+      {/* Floating Theme Toggle */}
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="glass-btn !p-2.5 !rounded-xl transition-all active:scale-95"
+          id="btn-theme-toggle-login"
+          title="Chuyển chế độ sáng/tối"
+        >
+          {mounted && (theme === 'dark' ? <Sun size={18} className="text-yellow-400" /> : <Moon size={18} className="text-slate-700" />)}
+          {!mounted && <div className="w-[18px] h-[18px]" />}
+        </button>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -57,8 +77,8 @@ export default function LoginPage() {
           >
             <Sparkles size={28} className="text-white" />
           </motion.div>
-          <h1 className="text-2xl font-bold text-white">Chào mừng trở lại</h1>
-          <p className="text-white/40 text-sm mt-2">
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Chào mừng trở lại</h1>
+          <p className="text-slate-500 dark:text-white/40 text-sm mt-2">
             Đăng nhập để tiếp tục với FocusBuddy
           </p>
         </div>
@@ -67,11 +87,11 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} className="space-y-4">
           {/* Email */}
           <div className="space-y-2">
-            <label className="text-sm text-white/60 font-medium">Email</label>
+            <label className="text-sm text-slate-600 dark:text-white/60 font-medium">Email</label>
             <div className="relative">
               <Mail
                 size={16}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/30"
               />
               <input
                 type="email"
@@ -87,11 +107,11 @@ export default function LoginPage() {
 
           {/* Password */}
           <div className="space-y-2">
-            <label className="text-sm text-white/60 font-medium">Mật khẩu</label>
+            <label className="text-sm text-slate-600 dark:text-white/60 font-medium">Mật khẩu</label>
             <div className="relative">
               <Lock
                 size={16}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/30"
               />
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -105,7 +125,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/30 hover:text-slate-600 dark:hover:text-white/60 transition-colors"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -117,7 +137,7 @@ export default function LoginPage() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-red-400 text-sm text-center"
+              className="text-red-500 text-sm text-center font-medium"
             >
               {error}
             </motion.p>
@@ -145,11 +165,11 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="mt-6 text-center">
-          <p className="text-sm text-white/40">
+          <p className="text-sm text-slate-500 dark:text-white/40">
             Chưa có tài khoản?{' '}
             <Link
               href="/register"
-              className="text-primary-400 hover:text-primary-300 font-medium transition-colors"
+              className="text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 font-medium transition-colors"
               id="link-register"
             >
               Đăng ký ngay

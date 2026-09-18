@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 from typing import List, Any
 from app.api.dependencies import get_db
-from app.schemas.emotion_log import EmotionLogCreate, EmotionLogUpdate, EmotionLogResponse
-from app.repositories.emotion_log_repository import EmotionLogRepository
-from app.services.emotion_log_service import EmotionLogService
+from app.schemas.module_4_mental_health.emotion_log import EmotionLogCreate, EmotionLogUpdate, EmotionLogResponse
+from app.repositories.module_4_mental_health.emotion_log_repository import EmotionLogRepository
+from app.services.module_4_mental_health.emotion_log_service import EmotionLogService
 
 router = APIRouter()
 """

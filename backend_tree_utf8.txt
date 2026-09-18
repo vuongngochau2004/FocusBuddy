@@ -1,0 +1,380 @@
+﻿Folder PATH listing for volume Dulieu
+Volume serial number is 00000014 F554:33E0
+D:\DUT AI CLUB\PROJECT\FORCUS_BUDDY\FOCUSBUDDY\BE\APP
+|   main.py
+|   
++---api
+|   |   dependencies.py
+|   |   router.py
+|   |   
+|   +---v1
+|   |   |   academic_performance.py
+|   |   |   academic_terms.py
+|   |   |   ai_analysis.py
+|   |   |   chat.py
+|   |   |   courses.py
+|   |   |   curriculums.py
+|   |   |   emotion_logs.py
+|   |   |   files.py
+|   |   |   grades.py
+|   |   |   learning_goals.py
+|   |   |   majors.py
+|   |   |   mental_assessments.py
+|   |   |   notifications.py
+|   |   |   scores.py
+|   |   |   study_sessions.py
+|   |   |   study_tasks.py
+|   |   |   universities.py
+|   |   |   user.py
+|   |   |   
+|   |   \---__pycache__
+|   |           academic_performance.cpython-312.pyc
+|   |           academic_terms.cpython-312.pyc
+|   |           ai_analysis.cpython-312.pyc
+|   |           chat.cpython-312.pyc
+|   |           courses.cpython-312.pyc
+|   |           curriculums.cpython-312.pyc
+|   |           emotion_logs.cpython-312.pyc
+|   |           files.cpython-312.pyc
+|   |           grades.cpython-312.pyc
+|   |           learning_goals.cpython-312.pyc
+|   |           majors.cpython-312.pyc
+|   |           mental_assessments.cpython-312.pyc
+|   |           notifications.cpython-312.pyc
+|   |           study_sessions.cpython-312.pyc
+|   |           study_tasks.cpython-312.pyc
+|   |           universities.cpython-312.pyc
+|   |           user.cpython-312.pyc
+|   |           
+|   \---__pycache__
+|           dependencies.cpython-312.pyc
+|           router.cpython-312.pyc
+|           
++---core
+|   |   celery_app.py
+|   |   config.py
+|   |   database.py
+|   |   exceptions.py
+|   |   security.py
+|   |   
+|   \---__pycache__
+|           config.cpython-312.pyc
+|           database.cpython-312.pyc
+|           security.cpython-312.pyc
+|           
++---integrations
+|       ai_client.py
+|       redis.py
+|       
++---models
+|   |   MODEL_IMPLEMENTATION_NOTES.md
+|   |   score.py
+|   |   __init__.py
+|   |   
+|   +---module_1_user_management
+|   |   |   major.py
+|   |   |   student_profile.py
+|   |   |   university.py
+|   |   |   user.py
+|   |   |   user_preference.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           major.cpython-312.pyc
+|   |           student_profile.cpython-312.pyc
+|   |           university.cpython-312.pyc
+|   |           user.cpython-312.pyc
+|   |           user_preference.cpython-312.pyc
+|   |           __init__.cpython-312.pyc
+|   |           
+|   +---module_2_academic_management
+|   |   |   academic_statistic.py
+|   |   |   academic_term.py
+|   |   |   course.py
+|   |   |   course_prerequisite.py
+|   |   |   curriculum.py
+|   |   |   curriculum_course.py
+|   |   |   degree_progress.py
+|   |   |   student_course.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           academic_statistic.cpython-312.pyc
+|   |           academic_term.cpython-312.pyc
+|   |           course.cpython-312.pyc
+|   |           course_prerequisite.cpython-312.pyc
+|   |           curriculum.cpython-312.pyc
+|   |           curriculum_course.cpython-312.pyc
+|   |           degree_progress.cpython-312.pyc
+|   |           student_course.cpython-312.pyc
+|   |           __init__.cpython-312.pyc
+|   |           
+|   +---module_3_learning_activity
+|   |   |   learning_goal.py
+|   |   |   learning_statistic.py
+|   |   |   study_session.py
+|   |   |   study_session_course.py
+|   |   |   study_task.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           learning_goal.cpython-312.pyc
+|   |           learning_statistic.cpython-312.pyc
+|   |           study_session.cpython-312.pyc
+|   |           study_session_course.cpython-312.pyc
+|   |           study_task.cpython-312.pyc
+|   |           __init__.cpython-312.pyc
+|   |           
+|   +---module_4_mental_health
+|   |   |   emotion_log.py
+|   |   |   mental_assessment.py
+|   |   |   mental_health_statistic.py
+|   |   |   psychological_survey.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           emotion_log.cpython-312.pyc
+|   |           mental_assessment.cpython-312.pyc
+|   |           mental_health_statistic.cpython-312.pyc
+|   |           psychological_survey.cpython-312.pyc
+|   |           __init__.cpython-312.pyc
+|   |           
+|   +---module_5_ai_chatbot
+|   |   |   chat_message.py
+|   |   |   chat_session.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           chat_message.cpython-312.pyc
+|   |           chat_session.cpython-312.pyc
+|   |           __init__.cpython-312.pyc
+|   |           
+|   +---module_6_ai_analysis
+|   |   |   agent_execution.py
+|   |   |   ai_agent.py
+|   |   |   ai_analysis_report.py
+|   |   |   ai_model_log.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           agent_execution.cpython-312.pyc
+|   |           ai_agent.cpython-312.pyc
+|   |           ai_analysis_report.cpython-312.pyc
+|   |           ai_model_log.cpython-312.pyc
+|   |           __init__.cpython-312.pyc
+|   |           
+|   +---module_7_file_processing
+|   |   |   file_extraction.py
+|   |   |   uploaded_file.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           file_extraction.cpython-312.pyc
+|   |           uploaded_file.cpython-312.pyc
+|   |           __init__.cpython-312.pyc
+|   |           
+|   +---module_8_recommendation_notification
+|   |   |   notification.py
+|   |   |   recommendation.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           notification.cpython-312.pyc
+|   |           recommendation.cpython-312.pyc
+|   |           __init__.cpython-312.pyc
+|   |           
+|   \---__pycache__
+|           __init__.cpython-312.pyc
+|           
++---repositories
+|   |   academic_statistic_repository.py
+|   |   academic_term_repository.py
+|   |   ai_analysis_repository.py
+|   |   chat_repository.py
+|   |   course_repository.py
+|   |   curriculum_repository.py
+|   |   emotion_log_repository.py
+|   |   file_extraction_repository.py
+|   |   learning_goal_repository.py
+|   |   major_repository.py
+|   |   mental_assessment_repository.py
+|   |   notification_repository.py
+|   |   recommendation_repository.py
+|   |   score_repository.py
+|   |   student_course_repository.py
+|   |   study_session_repository.py
+|   |   study_task_repository.py
+|   |   university_repository.py
+|   |   uploaded_file_repository.py
+|   |   user_repository.py
+|   |   
+|   \---__pycache__
+|           academic_statistic_repository.cpython-312.pyc
+|           academic_term_repository.cpython-312.pyc
+|           ai_analysis_repository.cpython-312.pyc
+|           chat_repository.cpython-312.pyc
+|           course_repository.cpython-312.pyc
+|           curriculum_repository.cpython-312.pyc
+|           emotion_log_repository.cpython-312.pyc
+|           file_extraction_repository.cpython-312.pyc
+|           learning_goal_repository.cpython-312.pyc
+|           major_repository.cpython-312.pyc
+|           mental_assessment_repository.cpython-312.pyc
+|           notification_repository.cpython-312.pyc
+|           recommendation_repository.cpython-312.pyc
+|           student_course_repository.cpython-312.pyc
+|           study_session_repository.cpython-312.pyc
+|           study_task_repository.cpython-312.pyc
+|           university_repository.cpython-312.pyc
+|           uploaded_file_repository.cpython-312.pyc
+|           user_repository.cpython-312.pyc
+|           
++---schemas
+|   |   academic_statistic.py
+|   |   academic_term.py
+|   |   ai_analysis.py
+|   |   chat.py
+|   |   course.py
+|   |   curriculum.py
+|   |   emotion_log.py
+|   |   grade_import.py
+|   |   learning_goal.py
+|   |   major.py
+|   |   mental_assessment.py
+|   |   notification.py
+|   |   recommendation.py
+|   |   score.py
+|   |   student_course.py
+|   |   study_session.py
+|   |   study_task.py
+|   |   university.py
+|   |   uploaded_file.py
+|   |   user.py
+|   |   
+|   \---__pycache__
+|           academic_statistic.cpython-312.pyc
+|           academic_term.cpython-312.pyc
+|           ai_analysis.cpython-312.pyc
+|           chat.cpython-312.pyc
+|           course.cpython-312.pyc
+|           curriculum.cpython-312.pyc
+|           emotion_log.cpython-312.pyc
+|           grade_import.cpython-312.pyc
+|           learning_goal.cpython-312.pyc
+|           major.cpython-312.pyc
+|           mental_assessment.cpython-312.pyc
+|           notification.cpython-312.pyc
+|           recommendation.cpython-312.pyc
+|           student_course.cpython-312.pyc
+|           study_session.cpython-312.pyc
+|           study_task.cpython-312.pyc
+|           university.cpython-312.pyc
+|           uploaded_file.cpython-312.pyc
+|           user.cpython-312.pyc
+|           
++---seed
+|   |   module_1_user_management.py
+|   |   module_2_academic_management.py
+|   |   module_3_learning_activity.py
+|   |   module_4_mental_health.py
+|   |   module_5_ai_chatbot.py
+|   |   module_6_ai_analysis.py
+|   |   module_7_file_processing.py
+|   |   module_8_recommendation_notification.py
+|   |   reset.py
+|   |   seed.py
+|   |   utils.py
+|   |   verify.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           module_1_user_management.cpython-312.pyc
+|           module_2_academic_management.cpython-312.pyc
+|           module_3_learning_activity.cpython-312.pyc
+|           module_4_mental_health.cpython-312.pyc
+|           module_5_ai_chatbot.cpython-312.pyc
+|           module_6_ai_analysis.cpython-312.pyc
+|           module_7_file_processing.cpython-312.pyc
+|           module_8_recommendation_notification.cpython-312.pyc
+|           reset.cpython-312.pyc
+|           seed.cpython-312.pyc
+|           utils.cpython-312.pyc
+|           verify.cpython-312.pyc
+|           __init__.cpython-312.pyc
+|           
++---services
+|   |   academic_performance_service.py
+|   |   academic_term_service.py
+|   |   ai_service.py
+|   |   chat_service.py
+|   |   course_service.py
+|   |   curriculum_service.py
+|   |   emotion_log_service.py
+|   |   file_service.py
+|   |   grade_service.py
+|   |   learning_goal_service.py
+|   |   major_service.py
+|   |   mental_assessment_service.py
+|   |   notification_service.py
+|   |   score_service.py
+|   |   study_session_service.py
+|   |   study_task_service.py
+|   |   university_service.py
+|   |   user_service.py
+|   |   
+|   +---ai
+|   |   |   agents.py
+|   |   |   context_builder.py
+|   |   |   orchestrator.py
+|   |   |   provider.py
+|   |   |   router.py
+|   |   |   
+|   |   +---prompts
+|   |   |   |   system.py
+|   |   |   |   
+|   |   |   \---__pycache__
+|   |   |           system.cpython-312.pyc
+|   |   |           
+|   |   \---__pycache__
+|   |           agents.cpython-312.pyc
+|   |           context_builder.cpython-312.pyc
+|   |           orchestrator.cpython-312.pyc
+|   |           provider.cpython-312.pyc
+|   |           
+|   +---file_processing
+|   |   |   base.py
+|   |   |   csv_processor.py
+|   |   |   txt_processor.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           base.cpython-312.pyc
+|   |           csv_processor.cpython-312.pyc
+|   |           txt_processor.cpython-312.pyc
+|   |           __init__.cpython-312.pyc
+|   |           
+|   \---__pycache__
+|           academic_performance_service.cpython-312.pyc
+|           academic_term_service.cpython-312.pyc
+|           ai_service.cpython-312.pyc
+|           chat_service.cpython-312.pyc
+|           course_service.cpython-312.pyc
+|           curriculum_service.cpython-312.pyc
+|           emotion_log_service.cpython-312.pyc
+|           file_service.cpython-312.pyc
+|           grade_service.cpython-312.pyc
+|           learning_goal_service.cpython-312.pyc
+|           major_service.cpython-312.pyc
+|           mental_assessment_service.cpython-312.pyc
+|           notification_service.cpython-312.pyc
+|           study_session_service.cpython-312.pyc
+|           study_task_service.cpython-312.pyc
+|           university_service.cpython-312.pyc
+|           user_service.cpython-312.pyc
+|           
++---utils
+|       file.py
+|       
+\---__pycache__
+        main.cpython-312.pyc
+        

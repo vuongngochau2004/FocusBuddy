@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, status, Header, Query
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
-from app.schemas.study_task import StudyTaskCreate, StudyTaskUpdate, StudyTaskResponse, StudyTaskListResponse
-from app.services.study_task_service import StudyTaskService
+from app.schemas.module_3_learning_activity.study_task import StudyTaskCreate, StudyTaskUpdate, StudyTaskResponse, StudyTaskListResponse
+from app.services.module_3_learning_activity.study_task_service import StudyTaskService
 
 router = APIRouter()
 """

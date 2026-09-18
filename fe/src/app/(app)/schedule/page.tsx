@@ -33,10 +33,10 @@ const priorityColors: Record<string, string> = {
 };
 
 const statusStyles: Record<string, { icon: typeof CheckCircle2; color: string }> = {
-  TODO: { icon: AlertCircle, color: 'text-white/30' },
-  IN_PROGRESS: { icon: Clock, color: 'text-amber-400' },
-  DONE: { icon: CheckCircle2, color: 'text-green-400' },
-  CANCELLED: { icon: AlertCircle, color: 'text-red-400/50' },
+  TODO: { icon: AlertCircle, color: 'text-slate-400 dark:text-white/30' },
+  IN_PROGRESS: { icon: Clock, color: 'text-amber-500' },
+  DONE: { icon: CheckCircle2, color: 'text-green-500' },
+  CANCELLED: { icon: AlertCircle, color: 'text-red-500/50' },
 };
 
 export default function SchedulePage() {
@@ -103,8 +103,8 @@ export default function SchedulePage() {
             <CalendarDays size={18} className="text-blue-400" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Lịch học & Nhiệm vụ</h2>
-            <p className="text-sm text-white/40">Quản lý các công việc học tập của bạn</p>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Lịch học & Nhiệm vụ</h2>
+            <p className="text-sm text-slate-500 dark:text-white/40">Quản lý các công việc học tập của bạn</p>
           </div>
         </div>
         <motion.button
@@ -127,13 +127,13 @@ export default function SchedulePage() {
             onClick={() => setFilter(tab.key)}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
               filter === tab.key
-                ? 'bg-primary-500/20 text-primary-300 border border-primary-500/20'
-                : 'text-white/40 hover:text-white/60 hover:bg-white/[0.04]'
+                ? 'bg-primary-500/20 text-primary-600 dark:text-primary-300 border border-primary-500/20'
+                : 'text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60 hover:bg-slate-200/50 dark:hover:bg-white/[0.04]'
             }`}
           >
             {tab.label}
             {tab.key === 'ALL' && (
-              <span className="ml-2 text-xs bg-white/10 px-1.5 py-0.5 rounded-md">
+              <span className="ml-2 text-xs bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-white/70 px-1.5 py-0.5 rounded-md">
                 {tasks.length}
               </span>
             )}
@@ -148,11 +148,11 @@ export default function SchedulePage() {
           animate={{ opacity: 1, y: 0 }}
           className="glass-strong p-6"
         >
-          <h3 className="text-lg font-semibold text-white mb-4">Thêm nhiệm vụ mới</h3>
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Thêm nhiệm vụ mới</h3>
           <form onSubmit={handleAddTask} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm text-white/60">Tiêu đề</label>
+                <label className="text-sm text-slate-500 dark:text-white/60">Tiêu đề</label>
                 <input
                   type="text"
                   value={newTask.title}
@@ -164,7 +164,7 @@ export default function SchedulePage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-white/60">Hạn chót</label>
+                <label className="text-sm text-slate-500 dark:text-white/60">Hạn chót</label>
                 <input
                   type="datetime-local"
                   value={newTask.deadline}
@@ -175,7 +175,7 @@ export default function SchedulePage() {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm text-white/60">Mô tả</label>
+              <label className="text-sm text-slate-500 dark:text-white/60">Mô tả</label>
               <input
                 type="text"
                 value={newTask.description}
@@ -186,7 +186,7 @@ export default function SchedulePage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm text-white/60">Mức độ ưu tiên</label>
+              <label className="text-sm text-slate-500 dark:text-white/60">Mức độ ưu tiên</label>
               <div className="flex gap-2">
                 {['LOW', 'MEDIUM', 'HIGH', 'URGENT'].map((p) => (
                   <button
@@ -196,7 +196,7 @@ export default function SchedulePage() {
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                       newTask.priority === p
                         ? priorityColors[p] + ' border border-current/20'
-                        : 'text-white/30 bg-white/[0.03]'
+                        : 'text-slate-500 dark:text-white/30 bg-slate-100 dark:bg-white/[0.03]'
                     }`}
                   >
                     {p}
@@ -227,8 +227,8 @@ export default function SchedulePage() {
         </div>
       ) : filteredTasks.length === 0 ? (
         <motion.div variants={item} className="glass p-12 text-center">
-          <BookOpen size={40} className="text-white/15 mx-auto mb-3" />
-          <p className="text-white/40 text-sm">Chưa có nhiệm vụ nào. Hãy thêm nhiệm vụ mới!</p>
+          <BookOpen size={40} className="text-slate-400 dark:text-white/15 mx-auto mb-3" />
+          <p className="text-slate-500 dark:text-white/40 text-sm">Chưa có nhiệm vụ nào. Hãy thêm nhiệm vụ mới!</p>
         </motion.div>
       ) : (
         <motion.div variants={container} className="space-y-3">
@@ -241,32 +241,32 @@ export default function SchedulePage() {
                 key={task.id}
                 variants={item}
                 whileHover={{ scale: 1.005 }}
-                className="glass p-4 flex items-center justify-between group cursor-pointer hover:bg-white/[0.06] transition-all"
+                className="glass p-4 flex items-center justify-between group cursor-pointer hover:bg-slate-100/50 dark:hover:bg-white/[0.06] transition-all"
               >
                 <div className="flex items-center gap-4">
                   <StatusIcon size={18} className={statusInfo.color} />
                   <div>
-                    <p className={`font-medium text-sm ${task.status === 'DONE' ? 'text-white/40 line-through' : 'text-white/85'}`}>
+                    <p className={`font-medium text-sm ${task.status === 'DONE' ? 'text-slate-400 dark:text-white/40 line-through' : 'text-slate-700 dark:text-white/85'}`}>
                       {task.title}
                     </p>
                     {task.description && (
-                      <p className="text-xs text-white/30 mt-0.5">{task.description}</p>
+                      <p className="text-xs text-slate-500 dark:text-white/30 mt-0.5">{task.description}</p>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   {task.priority && (
-                    <span className={`text-xs font-medium px-2 py-1 rounded-md ${priorityColors[task.priority] || 'text-white/30'}`}>
+                    <span className={`text-xs font-medium px-2 py-1 rounded-md ${priorityColors[task.priority] || 'text-slate-500 dark:text-white/30'}`}>
                       {task.priority}
                     </span>
                   )}
                   {task.deadline && (
-                    <span className="text-xs text-white/30 flex items-center gap-1">
+                    <span className="text-xs text-slate-500 dark:text-white/30 flex items-center gap-1">
                       <Clock size={12} />
                       {new Date(task.deadline).toLocaleDateString('vi-VN')}
                     </span>
                   )}
-                  <ChevronRight size={16} className="text-white/15 group-hover:text-white/40 transition-colors" />
+                  <ChevronRight size={16} className="text-slate-400 dark:text-white/15 group-hover:text-slate-600 dark:group-hover:text-white/40 transition-colors" />
                 </div>
               </motion.div>
             );

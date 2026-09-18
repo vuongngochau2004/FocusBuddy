@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
-from app.schemas.course import CourseCreate, CourseUpdate, CourseResponse, CourseListResponse
-from app.services.course_service import CourseService
+from app.schemas.module_2_academic_management.course import CourseCreate, CourseUpdate, CourseResponse, CourseListResponse
+from app.services.module_2_academic_management.course_service import CourseService
 
 router = APIRouter()
 

@@ -18,6 +18,7 @@ from app.api.v1.grades import router as grades_router
 from app.api.v1.academic_performance import router as academic_performance_router
 from app.api.v1.ai_analysis import router as ai_analysis_router
 from app.api.v1.chat import router as chat_router
+from app.api.v1.notifications import router as notification_router
 
 api_router.include_router(user_router, prefix="/v1/users", tags=["Users"])
 api_router.include_router(university_router, prefix="/v1/universities", tags=["Universities"])
@@ -35,6 +36,7 @@ api_router.include_router(grades_router, prefix="/v1/grades", tags=["Grades"])
 api_router.include_router(academic_performance_router, prefix="/v1/academic-performance", tags=["Academic Performance"])
 api_router.include_router(ai_analysis_router, prefix="/v1/ai", tags=["AI Analysis"])
 api_router.include_router(chat_router, prefix="/v1/chat", tags=["Chat"])
+api_router.include_router(notification_router, prefix="/v1/notifications", tags=["Notifications"])
 
 @api_router.get("/v1/ping", tags=["Health Check"])
 async def ping():

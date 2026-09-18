@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, status, Header
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
-from app.schemas.learning_goal import LearningGoalCreate, LearningGoalUpdate, LearningGoalResponse, LearningGoalListResponse
-from app.services.learning_goal_service import LearningGoalService
+from app.schemas.module_3_learning_activity.learning_goal import LearningGoalCreate, LearningGoalUpdate, LearningGoalResponse, LearningGoalListResponse
+from app.services.module_3_learning_activity.learning_goal_service import LearningGoalService
 
 router = APIRouter()
 """

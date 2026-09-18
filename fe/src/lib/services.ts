@@ -3,8 +3,11 @@ import {
   User,
   UserCreate,
   UserListResponse,
+  AcademicTerm,
   AcademicTermListResponse,
+  Course,
   CourseListResponse,
+  AcademicStatistic,
   StudyTask,
   StudyTaskCreate,
   StudyTaskListResponse,
@@ -13,10 +16,14 @@ import {
   LearningGoal,
   LearningGoalListResponse,
   EmotionLog,
+  EmotionLogListResponse,
   MentalAssessment,
+  MentalAssessmentListResponse,
   ChatSession,
   ChatMessage,
   ChatMessageCreate,
+  Notification,
+  NotificationListResponse,
 } from '@/types';
 
 // ===== USER SERVICE =====
@@ -41,12 +48,17 @@ export const userService = {
 export const academicTermService = {
   getAll: (skip = 0, limit = 100) =>
     api.get<AcademicTermListResponse>('/v1/academic-terms', { params: { skip, limit } }),
+
+  create: (data: any) =>
+    api.post<AcademicTerm>('/v1/academic-terms', data),
 };
 
 // ===== COURSE SERVICE =====
 export const courseService = {
   getAll: (skip = 0, limit = 100) =>
     api.get<CourseListResponse>('/v1/courses', { params: { skip, limit } }),
+  create: (data: any) =>
+    api.post<Course>('/v1/courses', data),
 };
 
 // ===== STUDY TASK SERVICE =====
@@ -88,7 +100,7 @@ export const learningGoalService = {
 // ===== EMOTION LOG SERVICE =====
 export const emotionLogService = {
   getAll: (skip = 0, limit = 100) =>
-    api.get<EmotionLog[]>('/v1/emotions', { params: { skip, limit } }),
+    api.get<EmotionLogListResponse>('/v1/emotions', { params: { skip, limit } }),
 
   create: (data: Partial<EmotionLog>) =>
     api.post<EmotionLog>('/v1/emotions', data),
@@ -97,7 +109,7 @@ export const emotionLogService = {
 // ===== MENTAL ASSESSMENT SERVICE =====
 export const mentalAssessmentService = {
   getAll: (skip = 0, limit = 100) =>
-    api.get<MentalAssessment[]>('/v1/assessments', { params: { skip, limit } }),
+    api.get<MentalAssessmentListResponse>('/v1/assessments', { params: { skip, limit } }),
 };
 
 // ===== CHAT SERVICE =====
@@ -113,14 +125,67 @@ export const chatService = {
 
   sendMessage: (sessionId: string, data: ChatMessageCreate) =>
     api.post<ChatMessage>(`/v1/chat/sessions/${sessionId}/messages`, data),
+
+  sendMessageStream: async function* (sessionId: string, data: ChatMessageCreate) {
+    const userId = localStorage.getItem('focusbuddy_user_id');
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8018/api';
+    const response = await fetch(`${baseUrl}/v1/chat/sessions/${sessionId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': userId || '',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.body) throw new Error('No response body');
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      yield decoder.decode(value, { stream: true });
+    }
+  },
 };
 
 // ===== GRADE SERVICE =====
 export const gradeService = {
   getAll: (skip = 0, limit = 100) =>
     api.get('/v1/grades', { params: { skip, limit } }),
+  create: (data: any) =>
+    api.post('/v1/grades', data),
+  update: (gradeId: string, data: any) =>
+    api.put(`/v1/grades/${gradeId}`, data),
+  delete: (gradeId: string) =>
+    api.delete(`/v1/grades/${gradeId}`),
+};
+
+// ===== ACADEMIC PERFORMANCE SERVICE =====
+export const academicPerformanceService = {
+  getStatistics: (skip = 0, limit = 100) =>
+    api.get<AcademicStatistic[]>('/v1/academic-performance', { params: { skip, limit } }),
+  getBasicStatistics: () =>
+    api.get<{
+      total_courses: number;
+      completed_courses: number;
+      failed_courses: number;
+      average_score: number;
+      highest_score: number;
+      lowest_score: number;
+    }>('/v1/academic-performance/basic-statistics'),
 };
 
 // ===== HEALTH CHECK =====
 export const healthCheck = () =>
   api.get('/v1/ping');
+
+// ===== NOTIFICATION SERVICE =====
+export const notificationService = {
+  getAll: (skip = 0, limit = 100) =>
+    api.get<NotificationListResponse>('/v1/notifications', { params: { skip, limit } }),
+  markRead: (notiId: string) =>
+    api.put<Notification>(`/v1/notifications/${notiId}/read`),
+  markAllRead: () =>
+    api.post('/v1/notifications/read-all'),
+};

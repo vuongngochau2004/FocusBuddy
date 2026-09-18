@@ -4,9 +4,9 @@ from typing import List
 from uuid import UUID
 
 from app.api.dependencies import get_db
-from app.schemas.ai_analysis import AIAnalysisRequest, AIAnalysisResponse
-from app.schemas.recommendation import RecommendationResponse
-from app.services.ai_service import AIService
+from app.schemas.module_6_ai_analysis.ai_analysis import AIAnalysisRequest, AIAnalysisResponse
+from app.schemas.module_8_recommendation_notification.recommendation import RecommendationResponse
+from app.services.module_5_ai_chatbot.ai_service import AIService
 
 router = APIRouter()
 ai_service = AIService()
@@ -15,13 +15,13 @@ def get_user_id(x_user_id: UUID = Header(...)) -> UUID:
     return x_user_id
 
 @router.post("/analyze")
-def generate_ai_analysis(
+async def generate_ai_analysis(
     request: AIAnalysisRequest,
     user_id: UUID = Depends(get_user_id),
     db: Session = Depends(get_db)
 ):
     try:
-        report = ai_service.generate_analysis(db, user_id, request)
+        report = await ai_service.generate_analysis(db, user_id, request)
         return {
             "message": "Phân tích thành công",
             "report_id": report.id

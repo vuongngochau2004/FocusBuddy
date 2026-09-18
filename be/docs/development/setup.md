@@ -20,8 +20,14 @@ source venv/bin/activate
 ```
 
 ## 3. Cài đặt Thư viện
+Dự án FocusBuddy sử dụng `uv` làm package manager thay vì `pip` truyền thống.
+
 ```bash
-pip install -r requirements.txt
+# Cài đặt uv (nếu chưa có)
+pip install uv
+
+# Đồng bộ dependencies từ uv.lock
+uv sync
 ```
 
 ## 4. Cấu hình Biến môi trường

@@ -110,7 +110,7 @@ export interface LearningGoal {
   unit?: string;
   start_date?: string;
   end_date?: string;
-  status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'ACTIVE' | 'ACHIEVED' | 'FAILED';
   created_at: string;
 }
 
@@ -132,6 +132,11 @@ export interface EmotionLog {
   created_at: string;
 }
 
+export interface EmotionLogListResponse {
+  items: EmotionLog[];
+  total: number;
+}
+
 // ===== MENTAL ASSESSMENT =====
 export interface MentalAssessment {
   id: string;
@@ -144,6 +149,11 @@ export interface MentalAssessment {
   summary?: string;
   recommendation?: string;
   created_at: string;
+}
+
+export interface MentalAssessmentListResponse {
+  items: MentalAssessment[];
+  total: number;
 }
 
 // ===== CHAT =====
@@ -195,3 +205,23 @@ export interface AcademicStatistic {
   rank?: string;
   updated_at: string;
 }
+
+// ===== NOTIFICATION =====
+export interface Notification {
+  id: string;
+  user_id: string;
+  recommendation_id?: string;
+  notification_type: 'REMINDER' | 'RECOMMENDATION' | 'SYSTEM' | 'ACADEMIC' | 'MENTAL_HEALTH';
+  title: string;
+  content: string;
+  is_read: boolean;
+  sent_at: string;
+  read_at?: string;
+  created_at: string;
+}
+
+export interface NotificationListResponse {
+  items: Notification[];
+  total: number;
+}
+

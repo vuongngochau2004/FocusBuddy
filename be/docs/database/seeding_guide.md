@@ -17,9 +17,10 @@ app/seed/
 ├── module_3_learning_activity.py               # Seed dữ liệu cho Module 3 (Study Sessions, Tasks, Learning Goals)
 ├── module_4_mental_health.py                   # Seed dữ liệu cho Module 4 (Surveys, Assessments, Emotion Logs)
 ├── module_5_ai_chatbot.py                      # Seed dữ liệu cho Module 5 (Chat Sessions, Messages)
-├── module_6_ai_analysis.py                     # Seed dữ liệu cho Module 6 (Agents, Logs, Reports)
+├── module_6_ai_analysis.py                     # Seed dữ liệu cho Module 6 (Logs, Reports)
 ├── module_7_file_processing.py                 # Seed dữ liệu cho Module 7 (Uploaded Files, Extractions)
-└── module_8_recommendation_notification.py     # Seed dữ liệu cho Module 8 (Recommendations, Notifications)
+├── module_8_recommendation_notification.py     # Seed dữ liệu cho Module 8 (Recommendations, Notifications)
+└── seed_agent_v2.py                            # Idempotent seed cho AgentConfig và IntentConfig (Cấu trúc Agent V2)
 ```
 
 **Lưu ý:** Tuyệt đối KHÔNG xóa các file trong thư mục `app/seed/`. Hãy giữ lại toàn bộ thư mục này trong repository để tất cả các thành viên trong team đều có thể chạy lại seed khi cần thiết.
